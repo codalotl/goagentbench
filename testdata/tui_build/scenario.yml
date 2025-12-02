@@ -1,0 +1,32 @@
+name: Building a TUI from a spec
+repo: github.com/codalotl/codalotl
+commit: 22d5465c09b1bebc75123b93f396c6f3ba224665
+
+classification:
+  type: build-package
+  has-spec: true
+  single-package: true
+  sees-failing-tests: true
+
+# Steps to set up. Could include copying files from this scenario folder. Nothing agent-specific.
+setup: null
+
+# Instructions and other agent configuration for this problem.
+# This COULD involve per-agent specialization?
+agent:
+  instructions: |
+    In internal/q/tui, read the SPEC.md and build the package according to the spec.
+    Do not install or use third party packages that aren't already used in go.mod.
+    Do not modify the SPEC.md or any provided tests.
+  allow-multiple-turns: true # If the agent ends its turn before solving the problem, this allows it to continue.
+    
+
+# How do we know if the agent succeeded?
+# - Existing tests pass (need to ensure the agent didn't delete or disable the tests, which they sometimes do!)
+# - Copy test files(s) from this directory to some path and run them.
+# - Ensure snippet signatures exist as we expect
+# - Ensure the copied test files type check correctly. This could be a better way to verify snippet signatures.
+# - Ensure some files are not modified. Ex: only files in package are modified; no new modules installed.
+verify:
+   only-modify: internal/q/tui # only-modify-recursive could also exist
+   
