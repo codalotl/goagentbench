@@ -30,7 +30,7 @@ Validations:
 - `--agent` is required. `--model` is optional. Both are valid.
 - `tui_build` exists as a scenario in the workspace. No existing run exists for this directory.
 
-It first writes run metadata in `$WORKSPACE/tui_buid/.run-start.json`. This data includes a run ID, the start time and date, the agent, the model, and some system information (ex: OS).
+It first writes run metadata in `$WORKSPACE/tui_buid/.run-start.json`. This data includes a run ID, the start time and date, the agent and version, the model, and some system information (ex: OS).
 
 Then it will run the agent against the scenario. As the agent takes turns, it will keep up to date `$WORKSPACE/tui_buid/.run-progress.json` (even if multiple prompts are taken). This file contains token usage, execution time, end time, and agent transcripts.
 
@@ -42,9 +42,15 @@ If the `--only-start` option is used, only the `.run-start.json` file is created
 
 By default, it writes a verification report to `./results` in:
 `results/tui_build/yyyy-mm-dd-<run_id>-<agent>-<model>.verify.json`
-(example: results/tui_build/2025-12-03-run_1234567890-codex-gpt-5-codex-high.verify.json).
+(example: `results/tui_build/2025-12-03-run_1234567890-codex-gpt-5-codex-high.verify.json`).
 
-It also prints out a summary of the report. The report includes both summary/numerical information (e.g., "agent got 5 of 8 tests to pass"), as well as logs of the verification process.
+When it does this, it combines the data in `.run-start.json` and `.run-progress.json`, as well as verification info, to write the final `verify.json` file.
+
+It also prints out a summary of the report. The printed summary includes which verification steps passed and failed. In partial success cases, it prints out the fraction of passing tests.
+
+If the `--only-report` option is used, it only prints out the summary report, and does not write a file to `./results`. When used with this option, `verify` should be able to be used with or without a `.run-progress.json` file.
+
+Calling `verify` with or without the `--only-report` flag should be idempotent.
 
 ## scenario.yml
 
@@ -93,34 +99,71 @@ agent:
     Do not install or use third party packages that aren't already used in go.mod.
     Do not modify the SPEC.md or any provided tests. You may write new tests.
   
-  # allow-multiple-turns: if the agent ends its turn before solving the problem, this allows it to continue.
-  # When being prompted to continue, we will just send, "Please continue until the problem is solved."
+  # allow-multiple-turns-on-failed-verify: if the agent ends its turn before solving the problem, this allows it to continue.
+  # When being prompted to continue, we will just send:
+  # - The output of `verify`
+  # - "Please continue until the problem is solved."
   # We ask the agent to continue IF verify does not pass AND this option is true.
   # We limit usage of this to 3 continues (may be configurable in future).
-  allow-multiple-turns: true
+  allow-multiple-turns-on-failed-verify: true
 
   # FUTURE IDEAS:
   # plan: true # let planning agents actually do their /plan feature. Non-planning agents are told a generic "make a plan" instruction.
+  #
+  # PER-AGENT-CONFIG:
+  # - we may want a way to specifically give certain agents slightly modified instructions. We could do that here.
+  # - But, gotta be careful we keep things fair, we want minimal instruction drift. Need to be clear about use case.
     
-
-# How do we know if the agent succeeded?
-# - Existing tests pass (need to ensure the agent didn't delete or disable the tests, which they sometimes do!)
-# - Copy test files(s) from this directory to some path and run them.
-# - Ensure snippet signatures exist as we expect
-# - Ensure the copied test files type check correctly. This could be a better way to verify snippet signatures.
-# - Ensure some files are not modified. Ex: only files in package are modified; no new modules installed.
-
 # verify: how we know if the agent succeeded in this scenario.
 # There are two levels of success: complete success and partial success. Partial success is a number from 0 to 1 (ex: 0.84). Complete success is a 1.
 # For complete success, all checks and tests listed must pass (tests not mentioned need not pass).
 # For partial success:
-# - Partial success is only possible if explicitly enabled via `partial-success: true` (not all scenarios really lend themselves to partial success).
-# - If everything passes EXCEPT for tests, 
+# - In order to score partial success, everything except `partial-tests` must pass, including other tests.
+# - Partial success is only possible if explicitly enabled via `partial-tests:`, which lists specific tests (not all scenarios really lend themselves to partial success).
+# - We analyze the tests run within `partial-tests`. Each test that Go runs which has a discrete PASS/FAIL/ERROR result reported counts as a test.
+# - (In other words, usually it's TestXxx. But when the test uses t.Run, often in a table driven test, each t.Run also counts as a test).
 verify:
-   
-  only-modify: internal/q/tui # only-modify-recursive could also exist
+
+  # Only modify these files or directories
+  # If an element is a directory, we can only modify/create/delete files directly in that directory. Supports globs.
+  only-modify:
+    - internal/q/tui
+
+  # May not modify any of these files/dirs/globs.
   no-modify:
-    - internal/q/tui/golden* # Do not modify any golden test files
-    - internal/q/tui/SPEC.md # Do not modify the spec.
-  tests: "go test ./internal/q/tui"
+    - internal/q/tui/golden*
+    - internal/q/tui/SPEC.md
+
+  # copy: an array of from/to pairs. Can be used to copy test files the agent didn't see when running.
+  # Any copied file is removed when verify is finished.
+  # NOTE: copy does not play well with allow-multiple-turns-on-failed-verify: true, since we'd be sharing test failures
+  # that the agent can't see.
+  copy:
+    - from: some_test.go # relative to scenario directory in `testdata`
+      to: path/to/package # relative to $WORKSPACE/$SCENARIODIR. Can be ".".
+
+  # tests is a list of must-pass tests (partial success not relevant). All elements are run with `go test`.
+  # Each element is:
+  # - a relative directory (relative to `$WORKSPACE/$SCENARIODIR`).
+  # - a relative file (of a _test.go file).
+  # - a glob of test files (ex: internal/q/tui/golden*_test.go)
+  # - a Go-style package pattern (ex: ./...; ./foo; ./bar/...)
+  # - If the element resolves such that there's only one target Go package, you may use -run to indicate specific tests are run.
+  tests:
+    - some/pkg
+    - ./other/...
+    - internal/app/golden_*_test.go
+    - internal/app/some_test.go
+    - ./mypkg -run TestImportant Thing
+
+  # partial-tests: which set of tests do we consider for partial success. When partial success is not relevant, can omit this field.
+  # This array uses the same format as `tests`.
+  partial-tests:
+    - internal/q/tui/golden*
+
+  # FUTURE:
+  # - we may want custom verification scripts
+  # script: myscript.sh
+
+
 ```
