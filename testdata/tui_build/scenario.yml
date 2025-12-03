@@ -1,6 +1,6 @@
-name: Building a TUI framework from a spec
+name: Building a TUI framework package from a spec
 repo: github.com/codalotl/codalotl
-commit: 22d5465c09b1bebc75123b93f396c6f3ba224665
+commit: 70744dc5b999bce4d0ac82329b2cd7e2bfb2c252
 
 classification:
   type: build-package
@@ -34,8 +34,8 @@ agent:
 # - Ensure the copied test files type check correctly. This could be a better way to verify snippet signatures.
 # - Ensure some files are not modified. Ex: only files in package are modified; no new modules installed.
 verify:
-   only-modify: internal/q/tui # only-modify-recursive could also exist
-   no-modify:
-     - internal/q/tui/golden* # Do not modify any golden test files
-     - internal/q/tui/SPEC.md # Do not modify the spec.
-   tests: "go test ./internal/q/tui"
+  only-modify: internal/q/tui # only-modify-recursive could also exist
+  no-modify:
+    - internal/q/tui/golden* # Do not modify any golden test files
+    - internal/q/tui/SPEC.md # Do not modify the spec.
+  tests: "go test ./internal/q/tui"
