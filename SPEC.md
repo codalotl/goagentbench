@@ -20,7 +20,7 @@ Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` appl
 
 ### setup
 
-`goagentbench setup tui_build`: sets up the source tree for this scenario within the workspace (fetches repo, checks out sha, applies setup steps in the scenario). `tui_build` must exist `testdata`. This parameter may have slashes to navigate to a nested subdirectory in `testdata`. If setup was already run on this scenario (possibly with agent runs dirtying it), setup provide a clean setup of `tui_build`.
+`goagentbench setup tui_build`: sets up the source tree for this scenario within the workspace (fetches repo, checks out sha, applies setup steps in the scenario). `tui_build` must exist in `testdata`. This parameter may have slashes to navigate to a nested subdirectory in `testdata`. If setup was already run on this scenario (possibly with agent runs dirtying it), setup provides a clean setup of `tui_build`.
 
 ### run-agent
 
@@ -30,9 +30,9 @@ Validations:
 - `--agent` is required. `--model` is optional. Both are valid.
 - `tui_build` exists as a scenario in the workspace. No existing run exists for this directory.
 
-It first writes run metadata in `$WORKSPACE/tui_buid/.run-start.json`. This data includes a run ID, the start time and date, the agent and version, the model, and some system information (ex: OS).
+It first writes run metadata in `$WORKSPACE/tui_build/.run-start.json`. This data includes a run ID, the start time and date, the agent and version, the model, and some system information (ex: OS).
 
-Then it will run the agent against the scenario. As the agent takes turns, it will keep up to date `$WORKSPACE/tui_buid/.run-progress.json` (even if multiple prompts are taken). This file contains token usage, execution time, end time, and agent transcripts.
+Then it will run the agent against the scenario. As the agent takes turns, it will keep up to date `$WORKSPACE/tui_build/.run-progress.json` (even if multiple prompts are taken). This file contains token usage, execution time, end time, and agent transcripts.
 
 If the `--only-start` option is used, only the `.run-start.json` file is created. The agent can then be manually run, recording things like token usage and execution time manually (or with other tools/subcommands).
 
@@ -54,7 +54,7 @@ Calling `verify` with or without the `--only-report` flag should be idempotent.
 
 ## scenario.yml
 
-Below is an example yml file.
+Below is an example yml file with field descriptions, semantic meaning, and rules.
 
 Required keys:
 - `name`, `repo`, `commit`, `classification` (`type` subfield required), `setup`, `agent` (`instructions` subfield required), `verify`
@@ -164,6 +164,4 @@ verify:
   # FUTURE:
   # - we may want custom verification scripts
   # script: myscript.sh
-
-
 ```
