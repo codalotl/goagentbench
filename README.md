@@ -17,6 +17,7 @@ This benchmark is not designed to handle writing **all** Go programs. For the sa
 
 ## Guidelines
 
+- If a scenario needs to be modified after results have been published for it, append semver to it (the initial version is considered version 1). Ex: `myscenario-1.1`.
 - Agents should be minimally configured. They should be close to clean installs.
 - AGENTS.md in a repository root is allowed. Any agent my read it.
 - The instructions given to each agent should be nearly identical.
@@ -33,8 +34,11 @@ The ontology is that a scenario belongs to a single `type`:
 - `build-package`: build a new package from scratch.
 - `fix-bug`: fix a bug in one or more packages.
 - `add-feature`: add a new feature/enhancement in one or more packages.
+- `refactor`: no semantic changes expected.
+
+Note that the above ontology is not an exact match to the real world. That's okay. This is just to slice and dice metrics for better analysis.
 
 Beyond it's overall type, a scenario may have zero or more `properties`:
 - `has-spec`: true or false. The task has a SPEC.md or similar.
 - `single-package`: true or false. The task is isolated to a single package vs spans multiple packages.
-- `sees-failing-tests`: true or false. If true, the failing tests are provided that the agent is measured against. If false, the agent is evaluated on tests it cannot see.
+- `sees-failing-tests`: true or false. If true, the failing tests are provided that the agent is measured against. If false, the agent is evaluated on tests it cannot see (or not applicable).
