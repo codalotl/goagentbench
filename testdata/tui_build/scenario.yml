@@ -1,4 +1,4 @@
-name: Building a TUI from a spec
+name: Building a TUI framework from a spec
 repo: github.com/codalotl/codalotl
 commit: 22d5465c09b1bebc75123b93f396c6f3ba224665
 
@@ -9,6 +9,8 @@ classification:
   sees-failing-tests: true
 
 # Steps to set up. Could include copying files from this scenario folder. Nothing agent-specific.
+# If a commit already has a failing test file that we can use for verification, there need be no setup.
+# Alternatively, we can copy test files over before (dring setup) or after (during verification) the agent has finished.
 setup: null
 
 # Instructions and other agent configuration for this problem.
@@ -17,7 +19,7 @@ agent:
   instructions: |
     In internal/q/tui, read the SPEC.md and build the package according to the spec.
     Do not install or use third party packages that aren't already used in go.mod.
-    Do not modify the SPEC.md or any provided tests.
+    Do not modify the SPEC.md or any provided tests. You may write new tests.
   allow-multiple-turns: true # If the agent ends its turn before solving the problem, this allows it to continue.
     
 
@@ -29,4 +31,7 @@ agent:
 # - Ensure some files are not modified. Ex: only files in package are modified; no new modules installed.
 verify:
    only-modify: internal/q/tui # only-modify-recursive could also exist
-   
+   no-modify:
+     - internal/q/tui/golden* # Do not modify any golden test files
+     - internal/q/tui/SPEC.md # Do not modify the spec.
+   tests: "go test ./internal/q/tui"
