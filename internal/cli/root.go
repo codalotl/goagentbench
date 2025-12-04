@@ -53,6 +53,11 @@ func newValidateCmd(workspacePath *string) *cobra.Command {
 			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
 				return err
 			}
+			formatted, err := json.MarshalIndent(sc, "", "  ")
+			if err != nil {
+				return fmt.Errorf("format scenario: %w", err)
+			}
+			fmt.Println(string(formatted))
 			fmt.Println("valid")
 			return nil
 		},
