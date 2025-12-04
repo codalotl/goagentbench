@@ -42,7 +42,7 @@ Special Features
 The ontology is that a scenario belongs to a single `type`:
 - `build-package`: build a new package from scratch.
 - `fix-bug`: fix a bug in one or more packages.
-- `add-feature`: add a new feature/enhancement in one or more packages.
+- `feature`: add a new feature/enhancement in one or more packages. This also includes, "continue development".
 - `refactor`: no semantic changes expected.
 
 Note that the above ontology is not an exact match to the real world. That's okay. This is just to slice and dice metrics for better analysis.
