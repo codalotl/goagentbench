@@ -165,3 +165,9 @@ verify:
   # - we may want custom verification scripts
   # script: myscript.sh
 ```
+
+## agents.yml and llms.yml
+
+Supported agents and their LLMs must be listed in these yml files. For each agent and its LLMs, we'll need a harness that knows how to execute it with specific parameters and extract transcripts and token usage.
+
+Some agents may be "manual" -- their harness will just indicate that a human should go run the agent. These manually run agents should still be listed in agents.yml and llms.yml.
