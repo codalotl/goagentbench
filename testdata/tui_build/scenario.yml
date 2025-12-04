@@ -38,4 +38,5 @@ verify:
   no-modify:
     - internal/q/tui/golden* # Do not modify any golden test files
     - internal/q/tui/SPEC.md # Do not modify the spec.
-  tests: "go test ./internal/q/tui"
+  tests:
+    - ./internal/q/tui
