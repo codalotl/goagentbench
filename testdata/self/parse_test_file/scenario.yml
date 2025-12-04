@@ -1,0 +1,55 @@
+name: Update parsing of test file strings in YML file
+repo: github.com/codalotl/goagentbench
+commit: ec3e85f76554431e9c4f3dd1a122b6a3b6fd6280
+
+classification:
+  type: feature
+  has-spec: false
+  single-package: false
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    In internal/scenario, update the validation of test paths to match this:
+
+    # tests is a list of must-pass tests (partial success not relevant). All elements are run with `go test`.
+    # Each element is:
+    # - a relative directory (relative to `$WORKSPACE/$SCENARIODIR`).
+    # - a relative file (of a _test.go file).
+    # - a glob of test files (ex: internal/q/tui/golden*_test.go)
+    # - a Go-style package pattern (ex: ./...; ./foo; ./bar/...)
+    # - If the element resolves such that there's only one target Go package, you may use -run to indicate specific tests are run. (-run must come last; only one; not --run)
+    tests:
+      - some/pkg
+      - ./other/...
+      - internal/app/golden_*_test.go
+      - internal/app/some_test.go
+      - ./mypkg -run TestImportant
+      - ./mypkg -run=TestImportant
+      - ./mypkg -run "TestImportant|TestThing"
+      - ./mypkg -run 'TestImportant/^(Sub1|Sub2)$'
+
+    Also, given a loaded Scenario, add these methods:
+
+    // returns valid target/run pairs, or an error if they're invalid
+    func (s Scenario) TestTargets() ([]TestTarget, error)
+
+    func (s Scenario) PartialTestTargets() ([]TestTarget, error)
+
+    type TestTarget struct {
+      Target string
+      Run    string // should just contain the pattern, not "-run". "" if no -run target.
+    }
+
+verify:
+  copy:
+    - from: gtb_scenario_test.go 
+      to: internal/scenario
+  only-modify:
+    - internal/scenario
+    - internal/verify
+    - testdata # optionally can fix scenario in tui_build
+  tests:
+    - ./...

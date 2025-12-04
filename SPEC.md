@@ -148,13 +148,16 @@ verify:
   # - a relative file (of a _test.go file).
   # - a glob of test files (ex: internal/q/tui/golden*_test.go)
   # - a Go-style package pattern (ex: ./...; ./foo; ./bar/...)
-  # - If the element resolves such that there's only one target Go package, you may use -run to indicate specific tests are run.
+  # - If the element resolves such that there's only one target Go package, you may use -run to indicate specific tests are run. (-run must come last; only one; not --run)
   tests:
     - some/pkg
     - ./other/...
     - internal/app/golden_*_test.go
     - internal/app/some_test.go
-    - ./mypkg -run TestImportant Thing
+    - ./mypkg -run TestImportant
+    - ./mypkg -run=TestImportant
+    - ./mypkg -run "TestImportant|TestThing"
+    - ./mypkg -run 'TestImportant/^(Sub1|Sub2)$'
 
   # partial-tests: which set of tests do we consider for partial success. When partial success is not relevant, can omit this field.
   # This array uses the same format as `tests`.
