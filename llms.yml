@@ -1,0 +1,8 @@
+# llms is the LLMs we support. Note that this is not **providers**. Routers like OpenRouter are irrelevant here (unless they ship a custom model).
+# For models like gpt-5 which support reasoning levels, each configuration should be listed as a separate model.
+# Only list **the best** models per LLM provider, and within those, only the best configurations.
+# Note that "the best" does not necessarily mean smartest - there can be a few different categories of "best" (fast vs smart).
+llms:
+  - name: gpt-5.1-codex-high
+    model: gpt-5.1-codex
+    reasoning-level: high

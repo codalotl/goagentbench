@@ -1,0 +1,18 @@
+# Available agents. The agent argument to --agent must match one of these names. The version listed must be the version used.
+# If an agent releases a new version, you may open a PR to increment it. We may keep it as-is for some period if a test of multiple
+# agents is underway.
+#
+# Some agents can support **all** the models. For any given agent, chose the top 5-10 that are relevant for the agent. This is often
+# the models that the agent does best with. The goal is to compare **agents**, not necessarily LLMs. Note that each LLM must be
+# be listed in llms.yml.
+#
+# Before you add an agent, you must add support for it (so we know how to run it).
+agents:
+  - name: codex
+    version: 0.64.0
+    supports-llms:
+      - gpt-5.1-codex-high
+      - gpt-5.1-codex-max-xhigh
+      - gpt-5.1-codex-max-high
+      - gpt-5.1-codex-max-medium
+      - gpt-5.1-codex-max-low
