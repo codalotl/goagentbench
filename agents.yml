@@ -16,3 +16,7 @@ agents:
       - gpt-5.1-codex-max-high
       - gpt-5.1-codex-max-medium
       - gpt-5.1-codex-max-low
+  - name: codalotl
+    version: 0.1.0-manual
+    supports-llms:
+      - gpt-5.1-codex-high
