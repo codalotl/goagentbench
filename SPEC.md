@@ -171,3 +171,18 @@ verify:
 Supported agents and their LLMs must be listed in these yml files. For each agent and its LLMs, we'll need a harness that knows how to execute it with specific parameters and extract transcripts and token usage.
 
 Some agents may be "manual" -- their harness will just indicate that a human should go run the agent. These manually run agents should still be listed in agents.yml and llms.yml.
+
+## V0.1 implementation
+
+These notes will descibe the first version we implement. This section will eventually be deleted.
+
+- The first version is a basic solid version, without frills or fancy features. For instance:
+    - No work trees. No git repo caching. No concurrency.
+    - Use judgement to match other questions against "what would a basic solid version do?"
+- No docker containers. Just run agents locally. Ex: if `codex` is an agent, just literally run the `codex` binary.
+- main.go should be nearly empty. It should call into a package in `internal`. Many packages can exist in `internal`.
+- You may install some go packages. For instance, you may use `cobra` for command line parsing. Be somewhat judicious in adding go packages. Steer clear of packages that have too many dependencies.
+- Use testify for tests.
+- Implement exactly two agents:
+    - `codex` (you are codex! that's exciting)
+    - `codalotl`. This will be manual mode. The harness should just indicate that the human should run it.

@@ -22,6 +22,15 @@ This benchmark is not designed to handle writing **all** Go programs. For the sa
 - AGENTS.md in a repository root is allowed. Any agent may read it.
 - The instructions given to each agent should be nearly identical.
 
+## CLI
+
+Build or run the CLI from the repository root:
+
+- `goagentbench validate-scenario <scenario>`: validate `testdata/<scenario>/scenario.yml` (uses `git ls-remote` to confirm the commit exists).
+- `goagentbench setup <scenario> [--workspace ./workspace]`: clone the scenario repo at the requested commit into the workspace and apply setup copy steps.
+- `goagentbench run-agent --agent=<agent> [--model=<model>] <scenario> [--workspace ./workspace] [--only-start]`: create `.run-start.json` and optionally invoke the agent harness (manual by default for codalotl; codex can be pointed at a command via `GOAGENTBENCH_CODEX_CMD`).
+- `goagentbench verify <scenario> [--workspace ./workspace] [--only-report]`: run verification tests, print a summary, and write a JSON report under `results/<scenario>/`.
+
 Special Features
 
 - An agent may offer "special features" besides just, "do this thing I type in the chat box". For instance, it may have a planning mode, reviewing mode, and so on.
