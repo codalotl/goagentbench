@@ -9,7 +9,7 @@
 # Before you add an agent, you must add support for it (so we know how to run it).
 agents:
   - name: codex
-    version: 0.64.0
+    version: 0.65.0
     supports-llms:
       - gpt-5.1-codex-high
       - gpt-5.1-codex-max-xhigh

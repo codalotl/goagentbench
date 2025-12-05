@@ -24,6 +24,23 @@ type RunOutcome struct {
 	Manual   bool
 }
 
+// AgentVersion returns the actual version reported by the agent harness, if any.
+// The boolean indicates whether a harness exists (manual agents return false).
+func AgentVersion(ctx context.Context, def Definition) (string, bool, error) {
+	agent, ok := buildAgent(ctx, def)
+	if !ok {
+		return "", false, nil
+	}
+	version, err := agent.Version()
+	if err != nil {
+		return "", true, err
+	}
+	if strings.TrimSpace(version) == "" {
+		return "", true, fmt.Errorf("agent %q returned an empty version", def.Name)
+	}
+	return version, true, nil
+}
+
 // Run invokes the harness for the given agent. Some agents are manual and
 // simply return a stub progress file instructing the user to run the agent.
 func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
@@ -53,7 +70,7 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 func buildAgent(ctx context.Context, def Definition) (Agent, bool) {
 	switch def.Name {
 	case "codex":
-		return newCodexAgent(ctx, def.Version), true
+		return newCodexAgent(ctx), true
 	default:
 		return nil, false
 	}

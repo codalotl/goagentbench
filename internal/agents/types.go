@@ -17,6 +17,6 @@ type RunResults struct {
 }
 
 type Agent interface {
-	Version() string
+	Version() (string, error)
 	Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults
 }
