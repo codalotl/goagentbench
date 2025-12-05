@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/codalotl/goagentbench/internal/agents"
+	"github.com/codalotl/goagentbench/internal/output"
 	"github.com/codalotl/goagentbench/internal/scenario"
 	"github.com/codalotl/goagentbench/internal/setup"
 	"github.com/codalotl/goagentbench/internal/types"
@@ -80,7 +81,8 @@ func newSetupCmd(workspacePath string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return setup.Run(ctx, scenarioName, workspacePath, sc)
+			printer := output.NewPrinter(os.Stdout)
+			return setup.Run(ctx, printer, scenarioName, workspacePath, sc)
 		},
 	}
 	return cmd
@@ -99,6 +101,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 			if agentName == "" {
 				return fmt.Errorf("--agent is required")
 			}
+			printer := output.NewPrinter(os.Stdout)
 			scenarioName, err := workspace.CleanScenario(args[0])
 			if err != nil {
 				return err
@@ -120,7 +123,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
 				return err
 			}
-			return runAgent(ctx, workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
+			return runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
 		},
 	}
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
@@ -129,7 +132,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 	return cmd
 }
 
-func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef agents.Definition, modelName string, llm *agents.LLMDefinition, instructions string, onlyStart bool) error {
+func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scenarioName string, agentDef agents.Definition, modelName string, llm *agents.LLMDefinition, instructions string, onlyStart bool) error {
 	if modelName == "" && llm != nil {
 		modelName = llm.Name
 	}
@@ -175,10 +178,12 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 		return err
 	}
 	if onlyStart {
-		fmt.Printf("Wrote %s\n", runStartPath)
-		return nil
+		return printer.Appf("Wrote %s", runStartPath)
 	}
 
+	if err := printer.Appf("Running agent %s (model=%s)", agentDef.Name, modelName); err != nil {
+		return err
+	}
 	outcome, err := agents.Run(ctx, agents.RunContext{
 		ScenarioName: scenarioName,
 		ScenarioPath: workspaceDir,
@@ -186,9 +191,10 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 		LLM:          llm,
 		Agent:        agentDef,
 		Instructions: instructions,
+		Printer:      printer,
 	})
 	if err != nil {
-		fmt.Printf("Agent run error: %v\n", err)
+		_ = printer.Appf("Agent run error: %v", err)
 	}
 	if outcome == nil || outcome.Progress == nil {
 		return fmt.Errorf("agent runner returned no progress")
@@ -212,10 +218,11 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 		return err
 	}
 	if outcome.Manual {
-		fmt.Println("Manual agent; progress file recorded. Please run the agent manually if needed.")
+		if err := printer.App("Manual agent; progress file recorded. Please run the agent manually if needed."); err != nil {
+			return err
+		}
 	}
-	fmt.Printf("Run complete. Start: %s, progress: %s\n", runStartPath, runProgressPath)
-	return nil
+	return printer.Appf("Run complete. Start: %s, progress: %s", runStartPath, runProgressPath)
 }
 
 func newVerifyCmd(workspacePath string) *cobra.Command {
@@ -226,6 +233,7 @@ func newVerifyCmd(workspacePath string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
+			printer := output.NewPrinter(os.Stdout)
 			scenarioName, err := workspace.CleanScenario(args[0])
 			if err != nil {
 				return err
@@ -241,6 +249,7 @@ func newVerifyCmd(workspacePath string) *cobra.Command {
 				WorkspacePath: workspacePath,
 				RootPath:      rootDir,
 				OnlyReport:    onlyReport,
+				Printer:       printer,
 			}
 			_, err = verify.Run(ctx, opts, sc)
 			return err

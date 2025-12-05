@@ -11,15 +11,19 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/codalotl/goagentbench/internal/output"
 )
 
 type codexAgent struct {
-	ctx context.Context
+	ctx     context.Context
+	printer *output.Printer
 }
 
-func newCodexAgent(ctx context.Context) Agent {
+func newCodexAgent(ctx context.Context, printer *output.Printer) Agent {
 	return &codexAgent{
-		ctx: ctx,
+		ctx:     ctx,
+		printer: printer,
 	}
 }
 
@@ -47,10 +51,15 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		args = append(args, "--config", reasoningConfig)
 	}
 	args = append(args, "--model", llm.Model, "--", trimmedInstructions)
-	cmd := exec.CommandContext(c.ctx, "codex", args...)
-	cmd.Dir = cwd
-
-	output, err := cmd.CombinedOutput()
+	var output []byte
+	var err error
+	if c.printer != nil {
+		output, err = c.printer.RunCommandStreaming(c.ctx, cwd, "codex", args...)
+	} else {
+		cmd := exec.CommandContext(c.ctx, "codex", args...)
+		cmd.Dir = cwd
+		output, err = cmd.CombinedOutput()
+	}
 	transcripts, usage := parseCodexOutput(output)
 
 	result := RunResults{

@@ -16,6 +16,7 @@ import (
 	"github.com/mattn/go-shellwords"
 
 	"github.com/codalotl/goagentbench/internal/fsutil"
+	"github.com/codalotl/goagentbench/internal/output"
 	"github.com/codalotl/goagentbench/internal/scenario"
 	"github.com/codalotl/goagentbench/internal/types"
 	"github.com/codalotl/goagentbench/internal/workspace"
@@ -26,6 +27,7 @@ type Options struct {
 	WorkspacePath string
 	RootPath      string
 	OnlyReport    bool
+	Printer       *output.Printer
 }
 
 type Result struct {
@@ -34,6 +36,10 @@ type Result struct {
 
 // Run executes verification: optional copies, go test runs, and writes report.
 func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, error) {
+	printer := opts.Printer
+	if printer == nil {
+		printer = output.NewPrinter(os.Stdout)
+	}
 	scenarioDir := workspace.ScenarioDir(opts.ScenarioName)
 	workspaceDir := workspace.WorkspaceScenarioDir(opts.WorkspacePath, opts.ScenarioName)
 
@@ -54,11 +60,11 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	}
 	defer cleanup()
 
-	testResults, err := runTestList(ctx, workspaceDir, sc.Verify.Tests)
+	testResults, err := runTestList(ctx, workspaceDir, sc.Verify.Tests, printer)
 	if err != nil {
 		return nil, err
 	}
-	partialResults, partialScore, err := runPartial(ctx, workspaceDir, sc.Verify.PartialTests)
+	partialResults, partialScore, err := runPartial(ctx, workspaceDir, sc.Verify.PartialTests, printer)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +92,7 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 			return nil, err
 		}
 	}
-	printSummary(report)
+	printSummary(printer, report)
 	return &Result{Report: report}, nil
 }
 
@@ -128,10 +134,10 @@ func applyVerifyCopies(sc *scenario.Scenario, scenarioDir, workspaceDir string) 
 	}, nil
 }
 
-func runTestList(ctx context.Context, workdir string, entries scenario.StringList) ([]types.TestResult, error) {
+func runTestList(ctx context.Context, workdir string, entries scenario.StringList, printer *output.Printer) ([]types.TestResult, error) {
 	var results []types.TestResult
 	for _, entry := range entries {
-		res, err := runGoTest(ctx, workdir, entry, false)
+		res, err := runGoTest(ctx, workdir, entry, false, printer)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +146,7 @@ func runTestList(ctx context.Context, workdir string, entries scenario.StringLis
 	return results, nil
 }
 
-func runPartial(ctx context.Context, workdir string, entries scenario.StringList) ([]types.TestResult, *float64, error) {
+func runPartial(ctx context.Context, workdir string, entries scenario.StringList, printer *output.Printer) ([]types.TestResult, *float64, error) {
 	if len(entries) == 0 {
 		return nil, nil, nil
 	}
@@ -148,7 +154,7 @@ func runPartial(ctx context.Context, workdir string, entries scenario.StringList
 	totalTests := 0
 	totalPassed := 0
 	for _, entry := range entries {
-		res, passed, total, err := runGoTestJSON(ctx, workdir, entry)
+		res, passed, total, err := runGoTestJSON(ctx, workdir, entry, printer)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -167,7 +173,7 @@ func runPartial(ctx context.Context, workdir string, entries scenario.StringList
 	return results, score, nil
 }
 
-func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool) (types.TestResult, error) {
+func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool, printer *output.Printer) (types.TestResult, error) {
 	args, err := parseTestArgs(entry)
 	if err != nil {
 		return types.TestResult{Name: entry, Passed: false, Error: err.Error()}, nil
@@ -177,16 +183,22 @@ func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool) (type
 		cmdArgs = append(cmdArgs, "-json")
 	}
 	cmdArgs = append(cmdArgs, args...)
-	cmd := exec.CommandContext(ctx, "go", cmdArgs...)
-	cmd.Dir = workdir
-	var buf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(&buf, os.Stdout)
-	cmd.Stderr = io.MultiWriter(&buf, os.Stderr)
-	err = cmd.Run()
+	var outputBytes []byte
+	if printer != nil {
+		outputBytes, err = printer.RunCommandStreaming(ctx, workdir, "go", cmdArgs...)
+	} else {
+		cmd := exec.CommandContext(ctx, "go", cmdArgs...)
+		cmd.Dir = workdir
+		var buf bytes.Buffer
+		cmd.Stdout = io.MultiWriter(&buf, os.Stdout)
+		cmd.Stderr = io.MultiWriter(&buf, os.Stderr)
+		err = cmd.Run()
+		outputBytes = buf.Bytes()
+	}
 	result := types.TestResult{
 		Name:   entry,
 		Passed: err == nil,
-		Output: buf.String(),
+		Output: string(outputBytes),
 	}
 	if err != nil {
 		result.Error = err.Error()
@@ -194,8 +206,8 @@ func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool) (type
 	return result, nil
 }
 
-func runGoTestJSON(ctx context.Context, workdir, entry string) (types.TestResult, int, int, error) {
-	res, err := runGoTest(ctx, workdir, entry, true)
+func runGoTestJSON(ctx context.Context, workdir, entry string, printer *output.Printer) (types.TestResult, int, int, error) {
+	res, err := runGoTest(ctx, workdir, entry, true, printer)
 	if err != nil {
 		return types.TestResult{}, 0, 0, err
 	}
@@ -357,28 +369,37 @@ func allPassed(results []types.TestResult) bool {
 	return true
 }
 
-func printSummary(report *types.VerificationReport) {
-	fmt.Printf("Verification for %s (agent=%s model=%s)\n", report.Scenario, report.Agent, report.Model)
+func printSummary(printer *output.Printer, report *types.VerificationReport) {
+	if report == nil {
+		return
+	}
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("Verification for %s (agent=%s model=%s)\n", report.Scenario, report.Agent, report.Model))
 	for _, t := range report.Tests {
 		status := "FAIL"
 		if t.Passed {
 			status = "PASS"
 		}
-		fmt.Printf("- %s: %s\n", t.Name, status)
+		builder.WriteString(fmt.Sprintf("- %s: %s\n", t.Name, status))
 	}
 	for _, t := range report.PartialTests {
 		status := "FAIL"
 		if t.Passed {
 			status = "PASS"
 		}
-		fmt.Printf("- partial %s: %s\n", t.Name, status)
+		builder.WriteString(fmt.Sprintf("- partial %s: %s\n", t.Name, status))
 	}
 	if report.PartialScore != nil && *report.PartialScore < 1 {
-		fmt.Printf("Partial success: %.2f\n", *report.PartialScore)
+		builder.WriteString(fmt.Sprintf("Partial success: %.2f\n", *report.PartialScore))
 	}
 	if report.Success {
-		fmt.Println("Result: success")
+		builder.WriteString("Result: success\n")
 	} else {
-		fmt.Println("Result: failure")
+		builder.WriteString("Result: failure\n")
 	}
+	if printer == nil {
+		fmt.Print(builder.String())
+		return
+	}
+	_ = printer.App(builder.String())
 }
