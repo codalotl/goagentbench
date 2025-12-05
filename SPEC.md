@@ -18,13 +18,15 @@ Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` appl
 
 Since this is a CLI app, we output to a terminal. But this CLI app is an **orchestrator** -- it often execs other commands, and those commands also have output. As such, it can be difficult to determine which output came from where.
 
+Output from **cobra** or "pre-run" stuff can remain as is, and this doesn't apply. For instance, printing out usage, or failing to supply a required flag, shouldn't be in bold.
+
 All output from **this** app (fmt.Println, for instance) will be output in Bold (using ANSI CSI sequences).
 
 All output from exec'ed commands (ex: `git clone`; output from agents; `go test`; etc) will be non-bold and italic, and will be colorized to a particular color in the 256-color space (which one depends on dark vs light mode). Any other formatting from exec'ed commands will be removed (ex: if command wrote underline sequence, we will remove that). Unless otherwise noted, all commands will echo this reformatted output to the temrinal.
 
 If any command is run (ex: `git clone`), the full comamnd will be printed first in non-bold, non-italic, and colorized to a different color than above.
 
-Finally, there MUST be a blank line between OUR output and THEIR output (no blank line between command run and its output). Example (using tags to indicate ANSI formatting for ease of human reading):
+Finally, there MUST be a blank line between OUR output and THEIR output (no blank line between command run and its output). This in a blank line AFTER their output. Example (using tags to indicate ANSI formatting for ease of human reading):
 
 ```
 <b>Running agent now.<reset>

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codalotl/goagentbench/internal/output"
 	"github.com/codalotl/goagentbench/internal/types"
 )
 
@@ -17,6 +18,7 @@ type RunContext struct {
 	Agent        Definition
 	Instructions string
 	Session      string
+	Printer      *output.Printer
 }
 
 type RunOutcome struct {
@@ -27,7 +29,7 @@ type RunOutcome struct {
 // AgentVersion returns the actual version reported by the agent harness, if any.
 // The boolean indicates whether a harness exists (manual agents return false).
 func AgentVersion(ctx context.Context, def Definition) (string, bool, error) {
-	agent, ok := buildAgent(ctx, def)
+	agent, ok := buildAgent(ctx, def, nil)
 	if !ok {
 		return "", false, nil
 	}
@@ -48,7 +50,7 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 	if modelName == "" && rc.LLM != nil {
 		modelName = rc.LLM.Name
 	}
-	if agent, ok := buildAgent(ctx, rc.Agent); ok {
+	if agent, ok := buildAgent(ctx, rc.Agent, rc.Printer); ok {
 		if rc.LLM == nil {
 			return nil, fmt.Errorf("model is required for agent %q", rc.Agent.Name)
 		}
@@ -67,10 +69,10 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 	}
 }
 
-func buildAgent(ctx context.Context, def Definition) (Agent, bool) {
+func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (Agent, bool) {
 	switch def.Name {
 	case "codex":
-		return newCodexAgent(ctx), true
+		return newCodexAgent(ctx, printer), true
 	default:
 		return nil, false
 	}
