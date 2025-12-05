@@ -14,7 +14,7 @@ type Definition struct {
 	SupportsLLMs []string `yaml:"supports-llms"`
 }
 
-type llmDefinition struct {
+type LLMDefinition struct {
 	Name           string `yaml:"name"`
 	Model          string `yaml:"model"`
 	ReasoningLevel string `yaml:"reasoning-level"`
@@ -25,12 +25,12 @@ type registryFile struct {
 }
 
 type llmFile struct {
-	LLMs []llmDefinition `yaml:"llms"`
+	LLMs []LLMDefinition `yaml:"llms"`
 }
 
 type Registry struct {
 	Agents map[string]Definition
-	LLMs   map[string]llmDefinition
+	LLMs   map[string]LLMDefinition
 }
 
 func LoadRegistry(root string) (*Registry, error) {
@@ -46,7 +46,7 @@ func LoadRegistry(root string) (*Registry, error) {
 	}
 	reg := &Registry{
 		Agents: map[string]Definition{},
-		LLMs:   map[string]llmDefinition{},
+		LLMs:   map[string]LLMDefinition{},
 	}
 	for _, a := range af.Agents {
 		if a.Name == "" {
@@ -76,27 +76,28 @@ func (r *Registry) Agent(name string) (Definition, bool) {
 	return a, ok
 }
 
-func (r *Registry) LLM(name string) (llmDefinition, bool) {
+func (r *Registry) LLM(name string) (LLMDefinition, bool) {
 	l, ok := r.LLMs[name]
 	return l, ok
 }
 
 // ValidateAgentModel ensures the agent and model exist and the model is supported.
-func (r *Registry) ValidateAgentModel(agentName, model string) (Definition, error) {
+func (r *Registry) ValidateAgentModel(agentName, model string) (Definition, *LLMDefinition, error) {
 	agent, ok := r.Agent(agentName)
 	if !ok {
-		return Definition{}, fmt.Errorf("unknown agent %q", agentName)
+		return Definition{}, nil, fmt.Errorf("unknown agent %q", agentName)
 	}
 	if model == "" {
-		return agent, nil
+		return agent, nil, nil
 	}
-	if _, ok := r.LLM(model); !ok {
-		return Definition{}, fmt.Errorf("unknown model %q", model)
+	llm, ok := r.LLM(model)
+	if !ok {
+		return Definition{}, nil, fmt.Errorf("unknown model %q", model)
 	}
 	for _, m := range agent.SupportsLLMs {
 		if m == model {
-			return agent, nil
+			return agent, &llm, nil
 		}
 	}
-	return Definition{}, fmt.Errorf("agent %q does not support model %q", agentName, model)
+	return Definition{}, nil, fmt.Errorf("agent %q does not support model %q", agentName, model)
 }

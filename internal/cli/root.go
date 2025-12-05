@@ -109,7 +109,7 @@ func newRunAgentCmd(workspacePath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			agentDef, err := registry.ValidateAgentModel(agentName, modelName)
+			agentDef, llmDef, err := registry.ValidateAgentModel(agentName, modelName)
 			if err != nil {
 				return err
 			}
@@ -121,7 +121,7 @@ func newRunAgentCmd(workspacePath *string) *cobra.Command {
 			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
 				return err
 			}
-			return runAgent(ctx, *workspacePath, scenarioName, agentDef, modelName, onlyStart)
+			return runAgent(ctx, *workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
 		},
 	}
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
@@ -130,7 +130,10 @@ func newRunAgentCmd(workspacePath *string) *cobra.Command {
 	return cmd
 }
 
-func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef agents.Definition, model string, onlyStart bool) error {
+func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef agents.Definition, modelName string, llm *agents.LLMDefinition, instructions string, onlyStart bool) error {
+	if modelName == "" && llm != nil {
+		modelName = llm.Name
+	}
 	workspaceDir := workspace.WorkspaceScenarioDir(workspacePath, scenarioName)
 	if _, err := os.Stat(workspaceDir); err != nil {
 		return fmt.Errorf("scenario not set up at %s; run setup first", workspaceDir)
@@ -151,7 +154,7 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 		Workspace:    workspacePath,
 		Agent:        agentDef.Name,
 		AgentVersion: agentDef.Version,
-		Model:        model,
+		Model:        modelName,
 		StartedAt:    now,
 		System: types.SystemInfo{
 			OS:        runtime.GOOS,
@@ -170,8 +173,10 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 	outcome, err := agents.Run(ctx, agents.RunContext{
 		ScenarioName: scenarioName,
 		ScenarioPath: workspaceDir,
-		Model:        model,
+		ModelName:    modelName,
+		LLM:          llm,
 		Agent:        agentDef,
+		Instructions: instructions,
 	})
 	if err != nil {
 		fmt.Printf("Agent run error: %v\n", err)
@@ -184,14 +189,14 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 	progress.Scenario = scenarioName
 	progress.Agent = agentDef.Name
 	progress.AgentVersion = agentDef.Version
-	progress.Model = model
+	progress.Model = modelName
 	progress.StartedAt = start.StartedAt
 	now = time.Now()
 	progress.UpdatedAt = now
 	if progress.EndedAt == nil {
 		progress.EndedAt = &now
 	}
-	if progress.DurationSeconds == 0 && progress.EndedAt != nil {
+	if progress.EndedAt != nil {
 		progress.DurationSeconds = progress.EndedAt.Sub(progress.StartedAt).Seconds()
 	}
 	if err := writeJSON(runProgressPath, progress); err != nil {
