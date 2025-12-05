@@ -88,7 +88,15 @@ func (r *Registry) ValidateAgentModel(agentName, model string) (Definition, *LLM
 		return Definition{}, nil, fmt.Errorf("unknown agent %q", agentName)
 	}
 	if model == "" {
-		return agent, nil, nil
+		if len(agent.SupportsLLMs) == 0 {
+			return Definition{}, nil, fmt.Errorf("agent %q has no supported models", agentName)
+		}
+		defaultModel := agent.SupportsLLMs[0]
+		llm, ok := r.LLM(defaultModel)
+		if !ok {
+			return Definition{}, nil, fmt.Errorf("default model %q for agent %q missing from llms.yml", defaultModel, agentName)
+		}
+		return agent, &llm, nil
 	}
 	llm, ok := r.LLM(model)
 	if !ok {

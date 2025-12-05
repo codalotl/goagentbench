@@ -63,7 +63,7 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 		return nil, err
 	}
 	allRequiredPassed := allPassed(testResults)
-	partialPassed := partialScore == nil || (partialScore != nil && *partialScore == 1)
+	partialPassed := partialScore == nil || *partialScore == 1
 	success := allRequiredPassed && partialPassed
 
 	report := &types.VerificationReport{

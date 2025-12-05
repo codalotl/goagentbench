@@ -8,24 +8,23 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 type codexAgent struct {
-	ctx     context.Context
-	version string
+	ctx context.Context
 }
 
-func newCodexAgent(ctx context.Context, version string) Agent {
+func newCodexAgent(ctx context.Context) Agent {
 	return &codexAgent{
-		ctx:     ctx,
-		version: version,
+		ctx: ctx,
 	}
 }
 
-func (c *codexAgent) Version() string {
-	return c.version
+func (c *codexAgent) Version() (string, error) {
+	return codexVersion(c.ctx)
 }
 
 func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults {
@@ -227,4 +226,47 @@ func asInt(val any) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+var codexVersionPattern = regexp.MustCompile(`\d+\.\d+\.\d+(?:[-\w\.]+)?`)
+
+func codexVersion(ctx context.Context) (string, error) {
+	attempts := [][]string{
+		{"--version"},
+		{"version"},
+	}
+	var failures []string
+	for _, args := range attempts {
+		cmd := exec.CommandContext(ctx, "codex", args...)
+		output, err := cmd.CombinedOutput()
+		trimmed := strings.TrimSpace(string(output))
+		if v := parseCodexVersion(trimmed); v != "" {
+			return v, nil
+		}
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("codex %s: %v", strings.Join(args, " "), err))
+		} else if trimmed != "" {
+			failures = append(failures, fmt.Sprintf("codex %s: unexpected output %q", strings.Join(args, " "), trimmed))
+		} else {
+			failures = append(failures, fmt.Sprintf("codex %s: no version output", strings.Join(args, " ")))
+		}
+	}
+	if len(failures) == 0 {
+		return "", errors.New("could not determine codex version")
+	}
+	return "", fmt.Errorf("could not determine codex version: %s", strings.Join(failures, "; "))
+}
+
+func parseCodexVersion(output string) string {
+	if output == "" {
+		return ""
+	}
+	if match := codexVersionPattern.FindString(output); match != "" {
+		return match
+	}
+	fields := strings.Fields(output)
+	if len(fields) == 1 {
+		return fields[0]
+	}
+	return ""
 }

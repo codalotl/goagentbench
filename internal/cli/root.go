@@ -145,6 +145,16 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 	if _, err := os.Stat(runProgressPath); err == nil {
 		return fmt.Errorf("run already in progress at %s", runProgressPath)
 	}
+	agentVersion := agentDef.Version
+	if actualVersion, hasHarness, err := agents.AgentVersion(ctx, agentDef); err != nil {
+		return fmt.Errorf("check version for agent %q: %w", agentDef.Name, err)
+	} else if hasHarness {
+		if actualVersion != agentDef.Version {
+			return fmt.Errorf("agent %q version mismatch: expected %s, got %s", agentDef.Name, agentDef.Version, actualVersion)
+		}
+		agentVersion = actualVersion
+		agentDef.Version = actualVersion
+	}
 	runID := fmt.Sprintf("run_%d", time.Now().Unix())
 	now := time.Now()
 	start := types.RunStart{
@@ -152,7 +162,7 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 		Scenario:     scenarioName,
 		Workspace:    workspacePath,
 		Agent:        agentDef.Name,
-		AgentVersion: agentDef.Version,
+		AgentVersion: agentVersion,
 		Model:        modelName,
 		StartedAt:    now,
 		System: types.SystemInfo{
@@ -187,7 +197,7 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 	progress.RunID = runID
 	progress.Scenario = scenarioName
 	progress.Agent = agentDef.Name
-	progress.AgentVersion = agentDef.Version
+	progress.AgentVersion = agentVersion
 	progress.Model = modelName
 	progress.StartedAt = start.StartedAt
 	now = time.Now()

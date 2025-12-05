@@ -27,7 +27,7 @@ Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` appl
 `goagentbench run-agent --agent=codex --model=gpt-5-codex-high tui_build`: runs the agent on the scenario.
 
 Validations:
-- `--agent` is required. `--model` is optional. Both are valid.
+- `--agent` is required. `--model` is optional. If omitted, it defaults to the first entry in the agent's `supports-llms` list (as long as that model exists in `llms.yml`).
 - `tui_build` exists as a scenario in the workspace. No existing run exists for this directory.
 
 It first writes run metadata in `$WORKSPACE/tui_build/.run-start.json`. This data includes a run ID, the start time and date, the agent and version, the model, and some system information (ex: OS).
