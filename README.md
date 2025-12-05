@@ -26,10 +26,12 @@ This benchmark is not designed to handle writing **all** Go programs. For the sa
 
 Build or run the CLI from the repository root:
 
+Workspace directory defaults to `./workspace`; override with the `GOAGENTBENCH_WORKSPACE` environment variable.
+
 - `goagentbench validate-scenario <scenario>`: validate `testdata/<scenario>/scenario.yml` (uses `git ls-remote` to confirm the commit exists).
-- `goagentbench setup <scenario> [--workspace ./workspace]`: clone the scenario repo at the requested commit into the workspace and apply setup copy steps.
-- `goagentbench run-agent --agent=<agent> [--model=<model>] <scenario> [--workspace ./workspace] [--only-start]`: create `.run-start.json` and optionally invoke the agent harness (manual by default for codalotl; codex uses the built-in harness that shells out to `codex exec`).
-- `goagentbench verify <scenario> [--workspace ./workspace] [--only-report]`: run verification tests, print a summary, and write a JSON report under `results/<scenario>/`.
+- `goagentbench setup <scenario>`: clone the scenario repo at the requested commit into the workspace and apply setup copy steps.
+- `goagentbench run-agent --agent=<agent> [--model=<model>] <scenario> [--only-start]`: create `.run-start.json` and optionally invoke the agent harness (manual by default for codalotl; codex uses the built-in harness that shells out to `codex exec`).
+- `goagentbench verify <scenario> [--only-report]`: run verification tests, print a summary, and write a JSON report under `results/<scenario>/`.
 
 Special Features
 
@@ -41,7 +43,7 @@ Special Features
 
 The ontology is that a scenario belongs to a single `type`:
 - `build-package`: build a new package from scratch.
-- `fix-bug`: fix a bug in one or more packages.
+- `fix-bug`: fix a bug in one or more packages. Fixing a bug also often involves refining a feature, and potentially refactoring.
 - `feature`: add a new feature/enhancement in one or more packages. This also includes, "continue development".
 - `refactor`: no semantic changes expected.
 

@@ -1,0 +1,34 @@
+name: Update Copy to CopyToDir and update callsites
+repo: github.com/codalotl/goagentbench
+commit: 8a6053522862ea98d6a8465cf2c4c5602e4391a3
+
+classification:
+  type: fix-bug
+  has-spec: false
+  single-package: false
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    In internal/fsutil, rename CopyPath to CopyToDir, with the following changes. src may be a file or a dir. dst MUST be a dir (it's an error if dst is a file). But if
+    dst doesn't exist, we build the directory. Along the way to building it, if any segment already exists as a file, it's an error.
+    If src is a dir, we copy all of src's contents, recursively, to dst.
+
+    Add a third parameter, overwrite bool. If true, we may overwrite existing files in dst. Otherwise, it's an error if any file would be overwritten. It's important
+    not to do partial writes in this case.
+
+    Change the return value. it should return func(), error. Even if error, the func is callable (does nothing). If no error, calling func will undo the copy, returning
+    the filesystem to the original state (restores orig versions of files if they were overwritten). The func should be safe to call any number of times.
+
+verify:
+  copy:
+    - from: gab_copy_test.go 
+      to: internal/fsutil
+  only-modify:
+    - internal/fstuil
+    - internal/setup
+    - internal/verify
+  tests:
+    - ./...

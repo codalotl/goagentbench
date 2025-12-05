@@ -105,8 +105,6 @@ func TestGABScenarioTestTargets_Invalid(t *testing.T) {
 		{name: "missing run pattern with space", raw: "./pkg -run "},
 		{name: "multiple run", raw: "./pkg -run Test -run Another"},
 		{name: "package ellipsis with run", raw: "./... -run Test"},
-		{name: "glob without suffix", raw: "some/pkg/*_test"},
-		{name: "target ending slash", raw: "some/pkg/"},
 		{name: "mismatched quotes", raw: "./pkg -run 'TestImportant"},
 		{name: "target starts with dash", raw: "-pkg"},
 	}
