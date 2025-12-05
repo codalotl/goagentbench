@@ -14,6 +14,29 @@ In the examples below, I am using `tui_build` as an example scenario. It can be 
 
 Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` applying setup steps there, and then letting the agent run there.
 
+## Output
+
+Since this is a CLI app, we output to a terminal. But this CLI app is an **orchestrator** -- it often execs other commands, and those commands also have output. As such, it can be difficult to determine which output came from where.
+
+All output from **this** app (fmt.Println, for instance) will be output in Bold (using ANSI CSI sequences).
+
+All output from exec'ed commands (ex: `git clone`; output from agents; `go test`; etc) will be non-bold and italic, and will be colorized to a particular color in the 256-color space (which one depends on dark vs light mode). Any other formatting from exec'ed commands will be removed (ex: if command wrote underline sequence, we will remove that). Unless otherwise noted, all commands will echo this reformatted output to the temrinal.
+
+If any command is run (ex: `git clone`), the full comamnd will be printed first in non-bold, non-italic, and colorized to a different color than above.
+
+Finally, there MUST be a blank line between OUR output and THEIR output (no blank line between command run and its output). Example (using tags to indicate ANSI formatting for ease of human reading):
+
+```
+<b>Running agent now.<reset>
+
+<color1>codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check --json "some instructions"<reset>
+<i><color2>Codex: i'm starting work...<reset>
+...
+<i><color2>Codex: finished!<reset>
+
+<b>Finished running agent. Starting verification...<reset>
+```
+
 ### validate-scenario
 
 `goagentbench validate-scenario tui_build`: validates the `scenario.yml` file is valid. Any files, data, repos, and commits referenced in the `scenario.yml` file exist. It will either print out "valid" or print out any problems.
