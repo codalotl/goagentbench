@@ -3,12 +3,8 @@ package agents
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/mattn/go-shellwords"
 
 	"github.com/codalotl/goagentbench/internal/types"
 )
@@ -16,8 +12,11 @@ import (
 type RunContext struct {
 	ScenarioName string
 	ScenarioPath string
-	Model        string
+	ModelName    string
+	LLM          *LLMDefinition
 	Agent        Definition
+	Instructions string
+	Session      string
 }
 
 type RunOutcome struct {
@@ -28,9 +27,22 @@ type RunOutcome struct {
 // Run invokes the harness for the given agent. Some agents are manual and
 // simply return a stub progress file instructing the user to run the agent.
 func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
+	modelName := rc.ModelName
+	if modelName == "" && rc.LLM != nil {
+		modelName = rc.LLM.Name
+	}
+	if agent, ok := buildAgent(ctx, rc.Agent); ok {
+		if rc.LLM == nil {
+			return nil, fmt.Errorf("model is required for agent %q", rc.Agent.Name)
+		}
+		started := time.Now()
+		results := agent.Run(rc.ScenarioPath, *rc.LLM, rc.Session, rc.Instructions)
+		ended := time.Now()
+		progress := runResultsToProgress(modelName, rc, started, ended, results)
+		return &RunOutcome{Progress: progress, Manual: false}, errorFromRunResults(results)
+	}
+
 	switch rc.Agent.Name {
-	case "codex":
-		return runCodex(ctx, rc)
 	case "codalotl":
 		return runManual(rc, "Run the codalotl agent manually in the scenario directory.")
 	default:
@@ -38,69 +50,72 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 	}
 }
 
+func buildAgent(ctx context.Context, def Definition) (Agent, bool) {
+	switch def.Name {
+	case "codex":
+		return newCodexAgent(ctx, def.Version), true
+	default:
+		return nil, false
+	}
+}
+
 func runManual(rc RunContext, note string) (*RunOutcome, error) {
+	modelName := rc.ModelName
+	if modelName == "" && rc.LLM != nil {
+		modelName = rc.LLM.Name
+	}
 	now := time.Now()
 	progress := &types.RunProgress{
 		RunID:           "",
 		Scenario:        rc.ScenarioName,
 		Agent:           rc.Agent.Name,
 		AgentVersion:    rc.Agent.Version,
-		Model:           rc.Model,
+		Model:           modelName,
 		StartedAt:       now,
 		UpdatedAt:       now,
 		EndedAt:         &now,
 		DurationSeconds: 0,
 		TokenUsage:      types.TokenUsage{},
 		Notes:           note,
-		Messages: []types.AgentMessage{
-			{
-				Role:      "system",
-				Content:   note,
-				Timestamp: now,
-			},
-		},
+		Transcripts:     []string{note},
 	}
 	return &RunOutcome{Progress: progress, Manual: true}, nil
 }
 
-func runCodex(ctx context.Context, rc RunContext) (*RunOutcome, error) {
-	cmdStr := os.Getenv("GOAGENTBENCH_CODEX_CMD")
-	if strings.TrimSpace(cmdStr) == "" {
-		return runManual(rc, "GOAGENTBENCH_CODEX_CMD not set; run codex manually.")
+func runResultsToProgress(modelName string, rc RunContext, started time.Time, ended time.Time, results RunResults) *types.RunProgress {
+	promptTokens := results.InputTokens + results.CachedInputTokens
+	completionTokens := results.OutputTokens
+	transcript := strings.TrimSpace(results.Transcript)
+	var transcripts []string
+	if transcript != "" {
+		transcripts = append(transcripts, transcript)
 	}
-	args, err := shellwords.Parse(cmdStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse GOAGENTBENCH_CODEX_CMD: %w", err)
-	}
-	if len(args) == 0 {
-		return runManual(rc, "GOAGENTBENCH_CODEX_CMD empty; run codex manually.")
-	}
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-	cmd.Dir = rc.ScenarioPath
-	output, err := cmd.CombinedOutput()
-	now := time.Now()
+
 	progress := &types.RunProgress{
 		RunID:           "",
 		Scenario:        rc.ScenarioName,
 		Agent:           rc.Agent.Name,
 		AgentVersion:    rc.Agent.Version,
-		Model:           rc.Model,
-		StartedAt:       now,
-		UpdatedAt:       now,
-		EndedAt:         &now,
-		DurationSeconds: 0,
-		TokenUsage:      types.TokenUsage{},
-		Messages: []types.AgentMessage{
-			{
-				Role:      "system",
-				Content:   strings.TrimSpace(string(output)),
-				Timestamp: now,
-			},
+		Model:           modelName,
+		StartedAt:       started,
+		UpdatedAt:       ended,
+		EndedAt:         &ended,
+		DurationSeconds: ended.Sub(started).Seconds(),
+		TokenUsage: types.TokenUsage{
+			Input:       results.InputTokens,
+			CachedInput: results.CachedInputTokens,
+			Output:      completionTokens,
+			Total:       promptTokens + completionTokens,
 		},
+		Transcripts: transcripts,
 	}
-	if err != nil {
-		progress.Notes = fmt.Sprintf("codex command failed: %v", err)
-		return &RunOutcome{Progress: progress, Manual: false}, err
+	if results.Err != nil {
+		progress.Notes = strings.TrimSpace(results.Err.Error())
 	}
-	return &RunOutcome{Progress: progress, Manual: false}, nil
+
+	return progress
+}
+
+func errorFromRunResults(res RunResults) error {
+	return res.Err
 }

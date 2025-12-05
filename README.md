@@ -28,7 +28,7 @@ Build or run the CLI from the repository root:
 
 - `goagentbench validate-scenario <scenario>`: validate `testdata/<scenario>/scenario.yml` (uses `git ls-remote` to confirm the commit exists).
 - `goagentbench setup <scenario> [--workspace ./workspace]`: clone the scenario repo at the requested commit into the workspace and apply setup copy steps.
-- `goagentbench run-agent --agent=<agent> [--model=<model>] <scenario> [--workspace ./workspace] [--only-start]`: create `.run-start.json` and optionally invoke the agent harness (manual by default for codalotl; codex can be pointed at a command via `GOAGENTBENCH_CODEX_CMD`).
+- `goagentbench run-agent --agent=<agent> [--model=<model>] <scenario> [--workspace ./workspace] [--only-start]`: create `.run-start.json` and optionally invoke the agent harness (manual by default for codalotl; codex uses the built-in harness that shells out to `codex exec`).
 - `goagentbench verify <scenario> [--workspace ./workspace] [--only-report]`: run verification tests, print a summary, and write a JSON report under `results/<scenario>/`.
 
 Special Features

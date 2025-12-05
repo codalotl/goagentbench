@@ -1,6 +1,6 @@
 name: Update parsing of test file strings in YML file
 repo: github.com/codalotl/goagentbench
-commit: ec3e85f76554431e9c4f3dd1a122b6a3b6fd6280
+commit: aefb88dbb06595bbb763a885413cfc3fa93f234c
 
 classification:
   type: feature
@@ -45,7 +45,7 @@ agent:
 
 verify:
   copy:
-    - from: gtb_scenario_test.go 
+    - from: gab_scenario_test.go 
       to: internal/scenario
   only-modify:
     - internal/scenario

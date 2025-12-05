@@ -20,9 +20,10 @@ type RunStart struct {
 }
 
 type TokenUsage struct {
-	Prompt     int `json:"prompt"`
-	Completion int `json:"completion"`
-	Total      int `json:"total"`
+	Input       int `json:"input"`
+	CachedInput int `json:"cached_input"`
+	Output      int `json:"output"`
+	Total       int `json:"total"`
 }
 
 type AgentMessage struct {
@@ -32,18 +33,18 @@ type AgentMessage struct {
 }
 
 type RunProgress struct {
-	RunID           string         `json:"run_id"`
-	Scenario        string         `json:"scenario"`
-	Agent           string         `json:"agent"`
-	AgentVersion    string         `json:"agent_version"`
-	Model           string         `json:"model,omitempty"`
-	StartedAt       time.Time      `json:"started_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
-	EndedAt         *time.Time     `json:"ended_at,omitempty"`
-	DurationSeconds float64        `json:"duration_seconds"`
-	TokenUsage      TokenUsage     `json:"token_usage"`
-	Messages        []AgentMessage `json:"messages,omitempty"`
-	Notes           string         `json:"notes,omitempty"`
+	RunID           string     `json:"run_id"`
+	Scenario        string     `json:"scenario"`
+	Agent           string     `json:"agent"`
+	AgentVersion    string     `json:"agent_version"`
+	Model           string     `json:"model,omitempty"`
+	StartedAt       time.Time  `json:"started_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+	EndedAt         *time.Time `json:"ended_at,omitempty"`
+	DurationSeconds float64    `json:"duration_seconds"`
+	TokenUsage      TokenUsage `json:"token_usage"`
+	Transcripts     []string   `json:"transcripts,omitempty"`
+	Notes           string     `json:"notes,omitempty"`
 }
 
 type TestResult struct {
