@@ -25,17 +25,16 @@ func Execute() error {
 		Use:   "goagentbench",
 		Short: "Benchmark AI coding agents on Go coding tasks.",
 	}
-	var workspacePath string
-	root.PersistentFlags().StringVar(&workspacePath, "workspace", "workspace", "workspace directory for scenarios")
+	workspacePath := workspace.Path()
 
-	root.AddCommand(newValidateCmd(&workspacePath))
-	root.AddCommand(newSetupCmd(&workspacePath))
-	root.AddCommand(newRunAgentCmd(&workspacePath))
-	root.AddCommand(newVerifyCmd(&workspacePath))
+	root.AddCommand(newValidateCmd())
+	root.AddCommand(newSetupCmd(workspacePath))
+	root.AddCommand(newRunAgentCmd(workspacePath))
+	root.AddCommand(newVerifyCmd(workspacePath))
 	return root.Execute()
 }
 
-func newValidateCmd(workspacePath *string) *cobra.Command {
+func newValidateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate-scenario <scenario>",
 		Short: "Validate a scenario definition",
@@ -65,7 +64,7 @@ func newValidateCmd(workspacePath *string) *cobra.Command {
 	return cmd
 }
 
-func newSetupCmd(workspacePath *string) *cobra.Command {
+func newSetupCmd(workspacePath string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup <scenario>",
 		Short: "Prepare the scenario workspace",
@@ -81,13 +80,13 @@ func newSetupCmd(workspacePath *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return setup.Run(ctx, scenarioName, *workspacePath, sc)
+			return setup.Run(ctx, scenarioName, workspacePath, sc)
 		},
 	}
 	return cmd
 }
 
-func newRunAgentCmd(workspacePath *string) *cobra.Command {
+func newRunAgentCmd(workspacePath string) *cobra.Command {
 	var agentName string
 	var modelName string
 	var onlyStart bool
@@ -121,7 +120,7 @@ func newRunAgentCmd(workspacePath *string) *cobra.Command {
 			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
 				return err
 			}
-			return runAgent(ctx, *workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
+			return runAgent(ctx, workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
 		},
 	}
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
@@ -209,7 +208,7 @@ func runAgent(ctx context.Context, workspacePath, scenarioName string, agentDef 
 	return nil
 }
 
-func newVerifyCmd(workspacePath *string) *cobra.Command {
+func newVerifyCmd(workspacePath string) *cobra.Command {
 	var onlyReport bool
 	cmd := &cobra.Command{
 		Use:   "verify <scenario>",
@@ -229,7 +228,7 @@ func newVerifyCmd(workspacePath *string) *cobra.Command {
 			rootDir, _ := os.Getwd()
 			opts := verify.Options{
 				ScenarioName:  scenarioName,
-				WorkspacePath: *workspacePath,
+				WorkspacePath: workspacePath,
 				RootPath:      rootDir,
 				OnlyReport:    onlyReport,
 			}

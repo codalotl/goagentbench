@@ -8,7 +8,7 @@ Read `README.md` for more background.
 
 It is assumed that the `goagentbench` exists and is run from this repo's root dir. Users may also just do `go run .` instead of compiling the binary.
 
-There is some path on the filesystem that is the workspace. Within this doc, it is referred to as `$WORKSPACE` or just "the workspace".  It is just `./workspace` unless overridden.
+There is some path on the filesystem that is the workspace. Within this doc, it is referred to as `$WORKSPACE` or just "the workspace".  It is just `./workspace` unless overridden. It can be overridden by the env var `$GOAGENTBENCH_WORKSPACE`.
 
 In the examples below, I am using `tui_build` as an example scenario. It can be replaced with any valid scenario. This directory may be referred to as `$SCENARIODIR`.
 

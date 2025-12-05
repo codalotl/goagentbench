@@ -52,10 +52,15 @@ func applyCopy(targetDir, scenarioDir string, step scenario.CopyStep) error {
 	if err != nil {
 		return err
 	}
+	var destDir string
 	if info.IsDir() {
+		destDir = dst
 		dst = filepath.Join(dst, filepath.Base(src))
+	} else {
+		destDir = filepath.Dir(dst)
 	}
-	_, err = fsutil.CopyPath(src, dst)
+	undo, err := fsutil.CopyToDir(src, destDir, false)
+	_ = undo
 	return err
 }
 

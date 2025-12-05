@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -93,39 +94,38 @@ func applyVerifyCopies(sc *scenario.Scenario, scenarioDir, workspaceDir string) 
 	if len(sc.Verify.Copy) == 0 {
 		return func() {}, nil
 	}
-	var toRemove []string
+	undos := make([]func(), 0, len(sc.Verify.Copy))
 	for _, c := range sc.Verify.Copy {
 		src := filepath.Join(scenarioDir, c.From)
-		dst, err := fsutil.SafeJoin(workspaceDir, c.To)
-		if err != nil {
-			return nil, err
-		}
 		info, err := os.Stat(src)
 		if err != nil {
 			return nil, err
 		}
+		var dstDir string
 		if info.IsDir() {
-			dst = filepath.Join(dst, filepath.Base(src))
+			dstDir, err = fsutil.SafeJoin(workspaceDir, c.To)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			dstDir, err = fsutil.SafeJoin(workspaceDir, filepath.Dir(c.To))
+			if err != nil {
+				return nil, err
+			}
 		}
-		existed := pathExists(dst)
-		created, err := fsutil.CopyPath(src, dst)
+		undo, err := fsutil.CopyToDir(src, dstDir, true)
 		if err != nil {
 			return nil, err
 		}
-		if created && !existed {
-			toRemove = append(toRemove, dst)
-		}
+		undos = append(undos, undo)
 	}
 	return func() {
-		for _, p := range toRemove {
-			_ = os.RemoveAll(p)
+		for i := len(undos) - 1; i >= 0; i-- {
+			if undos[i] != nil {
+				undos[i]()
+			}
 		}
 	}, nil
-}
-
-func pathExists(p string) bool {
-	_, err := os.Stat(p)
-	return err == nil
 }
 
 func runTestList(ctx context.Context, workdir string, entries scenario.StringList) ([]types.TestResult, error) {
@@ -180,8 +180,8 @@ func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool) (type
 	cmd := exec.CommandContext(ctx, "go", cmdArgs...)
 	cmd.Dir = workdir
 	var buf bytes.Buffer
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
+	cmd.Stdout = io.MultiWriter(&buf, os.Stdout)
+	cmd.Stderr = io.MultiWriter(&buf, os.Stderr)
 	err = cmd.Run()
 	result := types.TestResult{
 		Name:   entry,
