@@ -20,7 +20,7 @@ agent:
     In internal/q/tui, read the SPEC.md and build the package according to the spec.
     Do not install or use third party packages that aren't already used in go.mod.
     Do not modify the SPEC.md or any provided tests. You may write new tests.
-  allow-multiple-turns: true # If the agent ends its turn before solving the problem, this allows it to continue.
+  allow-multiple-turns-on-failed-verify: true # If the agent ends its turn before solving the problem, this allows it to continue.
 
   # idea: for big tasks like this, it may make sense to let planning agents do a planning phase. Non-planning agents
   # can just get a turn where we give a generic "make a plan" instruction.

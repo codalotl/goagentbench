@@ -110,14 +110,19 @@ func applyVerifyCopies(sc *scenario.Scenario, scenarioDir, workspaceDir string) 
 		var dstDir string
 		if info.IsDir() {
 			dstDir, err = fsutil.SafeJoin(workspaceDir, c.To)
-			if err != nil {
-				return nil, err
-			}
 		} else {
-			dstDir, err = fsutil.SafeJoin(workspaceDir, filepath.Dir(c.To))
-			if err != nil {
-				return nil, err
+			target := filepath.Clean(c.To)
+			// If the target looks like a directory (no extension or trailing slash),
+			// copy into that directory. Otherwise, treat c.To as a file path and use
+			// its parent directory.
+			if strings.HasSuffix(c.To, string(filepath.Separator)) || filepath.Ext(target) == "" {
+				dstDir, err = fsutil.SafeJoin(workspaceDir, target)
+			} else {
+				dstDir, err = fsutil.SafeJoin(workspaceDir, filepath.Dir(target))
 			}
+		}
+		if err != nil {
+			return nil, err
 		}
 		undo, err := fsutil.CopyToDir(src, dstDir, true)
 		if err != nil {
@@ -370,8 +375,21 @@ func allPassed(results []types.TestResult) bool {
 }
 
 func printSummary(printer *output.Printer, report *types.VerificationReport) {
-	if report == nil {
+	summary := SummaryString(report)
+	if summary == "" {
 		return
+	}
+	if printer == nil {
+		fmt.Print(summary)
+		return
+	}
+	_ = printer.App(summary)
+}
+
+// SummaryString returns a human-readable summary of the verification report.
+func SummaryString(report *types.VerificationReport) string {
+	if report == nil {
+		return ""
 	}
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("Verification for %s (agent=%s model=%s)\n", report.Scenario, report.Agent, report.Model))
@@ -397,9 +415,40 @@ func printSummary(printer *output.Printer, report *types.VerificationReport) {
 	} else {
 		builder.WriteString("Result: failure\n")
 	}
-	if printer == nil {
-		fmt.Print(builder.String())
-		return
+	return builder.String()
+}
+
+// DetailedString returns the summary plus any available test output/error text.
+func DetailedString(report *types.VerificationReport) string {
+	summary := SummaryString(report)
+	if report == nil {
+		return summary
 	}
-	_ = printer.App(builder.String())
+	builder := strings.Builder{}
+	if summary != "" {
+		builder.WriteString(summary)
+		if !strings.HasSuffix(summary, "\n") {
+			builder.WriteString("\n")
+		}
+	}
+	appendTests := func(prefix string, tests []types.TestResult) {
+		for _, t := range tests {
+			if t.Output == "" && t.Error == "" {
+				continue
+			}
+			builder.WriteString(fmt.Sprintf("%s%s output:\n", prefix, t.Name))
+			if t.Output != "" {
+				builder.WriteString(strings.TrimSpace(t.Output))
+				builder.WriteString("\n")
+			}
+			if t.Error != "" {
+				builder.WriteString("Error: ")
+				builder.WriteString(strings.TrimSpace(t.Error))
+				builder.WriteString("\n")
+			}
+		}
+	}
+	appendTests("", report.Tests)
+	appendTests("partial ", report.PartialTests)
+	return strings.TrimSpace(builder.String())
 }

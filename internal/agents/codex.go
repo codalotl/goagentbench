@@ -36,7 +36,8 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for codex")}
 	}
-	if strings.TrimSpace(llm.Model) == "" {
+	session = strings.TrimSpace(session)
+	if session == "" && strings.TrimSpace(llm.Model) == "" {
 		return RunResults{Err: errors.New("model is required for codex")}
 	}
 
@@ -50,7 +51,12 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		reasoningConfig := fmt.Sprintf("model_reasoning_effort=\"%s\"", llm.ReasoningLevel)
 		args = append(args, "--config", reasoningConfig)
 	}
-	args = append(args, "--model", llm.Model, "--", trimmedInstructions)
+	if session != "" {
+		args = append(args, "resume", session)
+	} else {
+		args = append(args, "--model", llm.Model)
+	}
+	args = append(args, "--", trimmedInstructions)
 	var output []byte
 	var err error
 	if c.printer != nil {
@@ -60,7 +66,7 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		cmd.Dir = cwd
 		output, err = cmd.CombinedOutput()
 	}
-	transcripts, usage := parseCodexOutput(output)
+	transcripts, usage, threadID := parseCodexOutput(output)
 
 	result := RunResults{
 		Transcript:        strings.TrimSpace(strings.Join(transcripts, "\n")),
@@ -68,6 +74,9 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		CachedInputTokens: usage.cachedTokens,
 		OutputTokens:      usage.outputTokens,
 		Session:           session,
+	}
+	if session == "" && threadID != "" {
+		result.Session = threadID
 	}
 	if result.Transcript == "" {
 		result.Transcript = strings.TrimSpace(string(output))
@@ -85,7 +94,7 @@ type codexUsage struct {
 	outputTokens int
 }
 
-func parseCodexOutput(raw []byte) ([]string, codexUsage) {
+func parseCodexOutput(raw []byte) ([]string, codexUsage, string) {
 	reader := bytes.NewReader(raw)
 	scanner := bufio.NewScanner(reader)
 	// Allow long JSON lines.
@@ -94,6 +103,7 @@ func parseCodexOutput(raw []byte) ([]string, codexUsage) {
 
 	var transcripts []string
 	var usage codexUsage
+	var threadID string
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -104,6 +114,9 @@ func parseCodexOutput(raw []byte) ([]string, codexUsage) {
 			// Non-JSON output still contributes to the transcript.
 			transcripts = append(transcripts, line)
 			continue
+		}
+		if threadID == "" {
+			threadID = extractThreadID(parsed)
 		}
 		if u, ok := parsed["usage"]; ok {
 			updateUsage(&usage, u)
@@ -121,7 +134,7 @@ func parseCodexOutput(raw []byte) ([]string, codexUsage) {
 			transcripts = []string{fallback}
 		}
 	}
-	return transcripts, usage
+	return transcripts, usage, threadID
 }
 
 func extractCodexMessage(payload map[string]any) string {
@@ -141,6 +154,19 @@ func extractCodexMessage(payload map[string]any) string {
 func extractCodexOutput(payload map[string]any) string {
 	if output, ok := payload["output"]; ok {
 		return extractOutputText(output)
+	}
+	return ""
+}
+
+func extractThreadID(payload map[string]any) string {
+	if t, ok := payload["thread_id"].(string); ok && strings.TrimSpace(t) != "" {
+		return strings.TrimSpace(t)
+	}
+	// Fall back to explicit thread.started event.
+	if typ, ok := payload["type"].(string); ok && typ == "thread.started" {
+		if t, ok := payload["thread_id"].(string); ok && strings.TrimSpace(t) != "" {
+			return strings.TrimSpace(t)
+		}
 	}
 	return ""
 }
