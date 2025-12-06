@@ -93,6 +93,7 @@ func runManual(rc RunContext, note string) (*RunOutcome, error) {
 		StartedAt:       now,
 		UpdatedAt:       now,
 		EndedAt:         &now,
+		Session:         rc.Session,
 		DurationSeconds: 0,
 		TokenUsage:      types.TokenUsage{},
 		Notes:           note,
@@ -109,6 +110,10 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 	if transcript != "" {
 		transcripts = append(transcripts, transcript)
 	}
+	session := strings.TrimSpace(results.Session)
+	if session == "" {
+		session = strings.TrimSpace(rc.Session)
+	}
 
 	progress := &types.RunProgress{
 		RunID:           "",
@@ -119,6 +124,7 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 		StartedAt:       started,
 		UpdatedAt:       ended,
 		EndedAt:         &ended,
+		Session:         session,
 		DurationSeconds: ended.Sub(started).Seconds(),
 		TokenUsage: types.TokenUsage{
 			Input:       results.InputTokens,

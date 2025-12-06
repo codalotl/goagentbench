@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -123,7 +124,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
 				return err
 			}
-			return runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc.Agent.Instructions, onlyStart)
+			return runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc, onlyStart)
 		},
 	}
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
@@ -132,10 +133,11 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 	return cmd
 }
 
-func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scenarioName string, agentDef agents.Definition, modelName string, llm *agents.LLMDefinition, instructions string, onlyStart bool) error {
+func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scenarioName string, agentDef agents.Definition, modelName string, llm *agents.LLMDefinition, sc *scenario.Scenario, onlyStart bool) error {
 	if modelName == "" && llm != nil {
 		modelName = llm.Name
 	}
+	rootDir, _ := os.Getwd()
 	workspaceDir := workspace.WorkspaceScenarioDir(workspacePath, scenarioName)
 	if _, err := os.Stat(workspaceDir); err != nil {
 		return fmt.Errorf("scenario not set up at %s; run setup first", workspaceDir)
@@ -181,47 +183,129 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		return printer.Appf("Wrote %s", runStartPath)
 	}
 
-	if err := printer.Appf("Running agent %s (model=%s)", agentDef.Name, modelName); err != nil {
-		return err
-	}
-	outcome, err := agents.Run(ctx, agents.RunContext{
-		ScenarioName: scenarioName,
-		ScenarioPath: workspaceDir,
-		ModelName:    modelName,
-		LLM:          llm,
-		Agent:        agentDef,
-		Instructions: instructions,
-		Printer:      printer,
-	})
-	if err != nil {
-		_ = printer.Appf("Agent run error: %v", err)
-	}
-	if outcome == nil || outcome.Progress == nil {
-		return fmt.Errorf("agent runner returned no progress")
-	}
-	progress := outcome.Progress
-	progress.RunID = runID
-	progress.Scenario = scenarioName
-	progress.Agent = agentDef.Name
-	progress.AgentVersion = agentVersion
-	progress.Model = modelName
-	progress.StartedAt = start.StartedAt
-	now = time.Now()
-	progress.UpdatedAt = now
-	if progress.EndedAt == nil {
-		progress.EndedAt = &now
-	}
-	if progress.EndedAt != nil {
-		progress.DurationSeconds = progress.EndedAt.Sub(progress.StartedAt).Seconds()
-	}
-	if err := writeJSON(runProgressPath, progress); err != nil {
-		return err
-	}
-	if outcome.Manual {
-		if err := printer.App("Manual agent; progress file recorded. Please run the agent manually if needed."); err != nil {
+	allowContinues := sc.Agent.AllowMultipleTurnsOnFailedVerify
+	maxContinues := 3
+	continuesUsed := 0
+	session := ""
+	aggTokens := types.TokenUsage{}
+	var transcripts []string
+	lastNotes := ""
+	lastEnded := start.StartedAt
+	currentInstructions := strings.TrimSpace(sc.Agent.Instructions)
+
+	for turn := 1; ; turn++ {
+		if err := printer.Appf("Running agent %s (model=%s) turn %d", agentDef.Name, modelName, turn); err != nil {
 			return err
 		}
+		outcome, err := agents.Run(ctx, agents.RunContext{
+			ScenarioName: scenarioName,
+			ScenarioPath: workspaceDir,
+			ModelName:    modelName,
+			LLM:          llm,
+			Agent:        agentDef,
+			Instructions: currentInstructions,
+			Session:      session,
+			Printer:      printer,
+		})
+		if err != nil {
+			_ = printer.Appf("Agent run error: %v", err)
+		}
+		if outcome == nil || outcome.Progress == nil {
+			return fmt.Errorf("agent runner returned no progress")
+		}
+		if outcome.Manual {
+			allowContinues = false
+		}
+
+		turnProgress := outcome.Progress
+		if s := strings.TrimSpace(turnProgress.Session); s != "" {
+			session = s
+		}
+		aggTokens.Input += turnProgress.TokenUsage.Input
+		aggTokens.CachedInput += turnProgress.TokenUsage.CachedInput
+		aggTokens.Output += turnProgress.TokenUsage.Output
+		aggTokens.Total = aggTokens.Input + aggTokens.CachedInput + aggTokens.Output
+		transcripts = append(transcripts, turnProgress.Transcripts...)
+		if turnProgress.Notes != "" {
+			lastNotes = turnProgress.Notes
+		}
+		if turnProgress.EndedAt != nil {
+			lastEnded = *turnProgress.EndedAt
+		} else {
+			lastEnded = time.Now()
+		}
+
+		now = time.Now()
+		ended := lastEnded
+		progress := &types.RunProgress{
+			RunID:           runID,
+			Scenario:        scenarioName,
+			Agent:           agentDef.Name,
+			AgentVersion:    agentVersion,
+			Model:           modelName,
+			StartedAt:       start.StartedAt,
+			UpdatedAt:       now,
+			EndedAt:         &ended,
+			Session:         session,
+			DurationSeconds: ended.Sub(start.StartedAt).Seconds(),
+			TokenUsage:      aggTokens,
+			Transcripts:     transcripts,
+			Notes:           lastNotes,
+		}
+		if err := writeJSON(runProgressPath, progress); err != nil {
+			return err
+		}
+		if outcome.Manual {
+			if err := printer.App("Manual agent; progress file recorded. Please run the agent manually if needed."); err != nil {
+				return err
+			}
+			break
+		}
+		if !allowContinues {
+			break
+		}
+
+		verRes, err := verify.Run(ctx, verify.Options{
+			ScenarioName:  scenarioName,
+			WorkspacePath: workspacePath,
+			RootPath:      rootDir,
+			OnlyReport:    true,
+			Printer:       printer,
+		}, sc)
+		if err != nil {
+			return err
+		}
+		var summary string
+		var success bool
+		if verRes != nil && verRes.Report != nil {
+			summary = verify.DetailedString(verRes.Report)
+			success = verRes.Report.Success
+		}
+		if success {
+			if err := printer.App("Verification passed; stopping."); err != nil {
+				return err
+			}
+			break
+		}
+		if continuesUsed >= maxContinues {
+			if err := printer.Appf("Verification failed; reached continue limit (%d).", maxContinues); err != nil {
+				return err
+			}
+			break
+		}
+		continuesUsed++
+		if err := printer.Appf("Verification failed; continuing (attempt %d of %d).", continuesUsed, maxContinues); err != nil {
+			return err
+		}
+		nextPrompt := strings.TrimSpace(summary)
+		if nextPrompt != "" {
+			nextPrompt = fmt.Sprintf("%s\n\nPlease continue until the problem is solved.", nextPrompt)
+		} else {
+			nextPrompt = "Please continue until the problem is solved."
+		}
+		currentInstructions = nextPrompt
 	}
+
 	return printer.Appf("Run complete. Start: %s, progress: %s", runStartPath, runProgressPath)
 }
 

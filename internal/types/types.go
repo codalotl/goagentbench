@@ -40,6 +40,7 @@ type RunProgress struct {
 	Model           string     `json:"model,omitempty"`
 	StartedAt       time.Time  `json:"started_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
+	Session         string     `json:"session,omitempty"`
 	EndedAt         *time.Time `json:"ended_at,omitempty"`
 	DurationSeconds float64    `json:"duration_seconds"`
 	TokenUsage      TokenUsage `json:"token_usage"`
