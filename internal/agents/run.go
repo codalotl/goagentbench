@@ -50,12 +50,17 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 	if modelName == "" && rc.LLM != nil {
 		modelName = rc.LLM.Name
 	}
+	var llm *LLMDefinition
+	if rc.LLM != nil {
+		llmCopy := rc.LLM.resolvedForAgent(rc.Agent.Name)
+		llm = &llmCopy
+	}
 	if agent, ok := buildAgent(ctx, rc.Agent, rc.Printer); ok {
-		if rc.LLM == nil {
+		if llm == nil {
 			return nil, fmt.Errorf("model is required for agent %q", rc.Agent.Name)
 		}
 		started := time.Now()
-		results := agent.Run(rc.ScenarioPath, *rc.LLM, rc.Session, rc.Instructions)
+		results := agent.Run(rc.ScenarioPath, *llm, rc.Session, rc.Instructions)
 		ended := time.Now()
 		progress := runResultsToProgress(modelName, rc, started, ended, results)
 		return &RunOutcome{Progress: progress, Manual: false}, errorFromRunResults(results)
@@ -73,6 +78,8 @@ func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (A
 	switch def.Name {
 	case "codex":
 		return newCodexAgent(ctx, printer), true
+	case "cursor-agent":
+		return newCursorAgent(ctx, printer), true
 	default:
 		return nil, false
 	}

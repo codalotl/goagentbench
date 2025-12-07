@@ -57,19 +57,19 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		args = append(args, "--model", llm.Model)
 	}
 	args = append(args, "--", trimmedInstructions)
-	var output []byte
+	var outputBytes []byte
 	var err error
 	if c.printer != nil {
-		output, err = c.printer.RunCommandStreaming(c.ctx, cwd, "codex", args...)
+		outputBytes, err = c.printer.RunCommandStreaming(c.ctx, cwd, "codex", args...)
 	} else {
 		cmd := exec.CommandContext(c.ctx, "codex", args...)
 		cmd.Dir = cwd
-		output, err = cmd.CombinedOutput()
+		outputBytes, err = cmd.CombinedOutput()
 	}
-	transcripts, usage, threadID := parseCodexOutput(output)
+	transcript, usage, threadID := parseCodexOutput(outputBytes)
 
 	result := RunResults{
-		Transcript:        strings.TrimSpace(strings.Join(transcripts, "\n")),
+		Transcript:        transcript,
 		InputTokens:       usage.inputTokens,
 		CachedInputTokens: usage.cachedTokens,
 		OutputTokens:      usage.outputTokens,
@@ -77,9 +77,6 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	}
 	if session == "" && threadID != "" {
 		result.Session = threadID
-	}
-	if result.Transcript == "" {
-		result.Transcript = strings.TrimSpace(string(output))
 	}
 	if err != nil {
 		result.Err = err
@@ -94,14 +91,13 @@ type codexUsage struct {
 	outputTokens int
 }
 
-func parseCodexOutput(raw []byte) ([]string, codexUsage, string) {
+func parseCodexOutput(raw []byte) (string, codexUsage, string) {
 	reader := bytes.NewReader(raw)
 	scanner := bufio.NewScanner(reader)
 	// Allow long JSON lines.
 	buf := make([]byte, 0, 1024*1024)
 	scanner.Buffer(buf, 1024*1024)
 
-	var transcripts []string
 	var usage codexUsage
 	var threadID string
 	for scanner.Scan() {
@@ -111,8 +107,6 @@ func parseCodexOutput(raw []byte) ([]string, codexUsage, string) {
 		}
 		var parsed map[string]any
 		if err := json.Unmarshal([]byte(line), &parsed); err != nil {
-			// Non-JSON output still contributes to the transcript.
-			transcripts = append(transcripts, line)
 			continue
 		}
 		if threadID == "" {
@@ -121,41 +115,8 @@ func parseCodexOutput(raw []byte) ([]string, codexUsage, string) {
 		if u, ok := parsed["usage"]; ok {
 			updateUsage(&usage, u)
 		}
-		if msg := extractCodexMessage(parsed); msg != "" {
-			transcripts = append(transcripts, msg)
-			continue
-		}
-		if output := extractCodexOutput(parsed); output != "" {
-			transcripts = append(transcripts, output)
-		}
 	}
-	if len(transcripts) == 0 {
-		if fallback := strings.TrimSpace(string(raw)); fallback != "" {
-			transcripts = []string{fallback}
-		}
-	}
-	return transcripts, usage, threadID
-}
-
-func extractCodexMessage(payload map[string]any) string {
-	if msg, ok := payload["message"]; ok {
-		if text := extractTextValue(msg); text != "" {
-			return text
-		}
-	}
-	if content, ok := payload["content"]; ok {
-		if text := extractTextFromBlocks(content); text != "" {
-			return text
-		}
-	}
-	return ""
-}
-
-func extractCodexOutput(payload map[string]any) string {
-	if output, ok := payload["output"]; ok {
-		return extractOutputText(output)
-	}
-	return ""
+	return string(raw), usage, threadID
 }
 
 func extractThreadID(payload map[string]any) string {
@@ -166,62 +127,6 @@ func extractThreadID(payload map[string]any) string {
 	if typ, ok := payload["type"].(string); ok && typ == "thread.started" {
 		if t, ok := payload["thread_id"].(string); ok && strings.TrimSpace(t) != "" {
 			return strings.TrimSpace(t)
-		}
-	}
-	return ""
-}
-
-func extractTextValue(val any) string {
-	switch v := val.(type) {
-	case string:
-		return v
-	case map[string]any:
-		if text := extractTextFromBlocks(v["content"]); text != "" {
-			return text
-		}
-		if text, ok := v["text"].(string); ok {
-			return text
-		}
-	}
-	return ""
-}
-
-func extractTextFromBlocks(raw any) string {
-	items, ok := raw.([]any)
-	if !ok {
-		return ""
-	}
-	var parts []string
-	for _, item := range items {
-		if block, ok := item.(map[string]any); ok {
-			if text, ok := block["text"].(string); ok {
-				parts = append(parts, text)
-			}
-		}
-	}
-	return strings.Join(parts, "")
-}
-
-func extractOutputText(raw any) string {
-	switch v := raw.(type) {
-	case string:
-		return v
-	case map[string]any:
-		if output, ok := v["output"]; ok {
-			if nested := extractOutputText(output); nested != "" {
-				return nested
-			}
-		}
-		if text := extractTextFromBlocks(v["content"]); text != "" {
-			return text
-		}
-		bytes, err := json.Marshal(v)
-		if err == nil {
-			return string(bytes)
-		}
-	default:
-		if v != nil {
-			return fmt.Sprint(v)
 		}
 	}
 	return ""

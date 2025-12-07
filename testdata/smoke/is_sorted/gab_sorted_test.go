@@ -6,10 +6,10 @@ import (
 	"github.com/codalotl/goagentbench/internal/sorting"
 )
 
-// To test allow-multiple-turns-on-failed-verify, uncomment the boom:
-// func TestBoom(t *testing.T) {
-// 	t.Fatalf("an explosion occurred. It was not caused by you. Sorry. Just end yoru turn again.")
-// }
+// This test always fails. Combines with allow-multiple-turns-on-failed-verify to test retry mechanism.
+func TestBoom(t *testing.T) {
+	t.Fatalf("an explosion occurred. It was not caused by you. Sorry. Just end your turn again.")
+}
 
 func TestIsSorted(t *testing.T) {
 	tests := []struct {

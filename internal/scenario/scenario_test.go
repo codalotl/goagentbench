@@ -124,3 +124,27 @@ func TestScenarioTestTargets_Invalid(t *testing.T) {
 		})
 	}
 }
+
+func TestValidate_DoesNotRequireVerifyTests(t *testing.T) {
+	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
+	base := scenario.Scenario{
+		Name:           "demo",
+		Repo:           "github.com/example/repo",
+		Commit:         "1234567",
+		Classification: scenario.Classification{Type: "build-package"},
+		Agent:          scenario.AgentConfig{Instructions: "do the thing"},
+	}
+
+	t.Run("empty verify", func(t *testing.T) {
+		sc := base
+		err := scenario.Validate(&sc, t.TempDir())
+		require.NoError(t, err)
+	})
+
+	t.Run("partial tests only", func(t *testing.T) {
+		sc := base
+		sc.Verify.PartialTests = scenario.StringList{"./pkg -run TestImportant"}
+		err := scenario.Validate(&sc, t.TempDir())
+		require.NoError(t, err)
+	})
+}

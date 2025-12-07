@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -15,9 +16,10 @@ type Definition struct {
 }
 
 type LLMDefinition struct {
-	Name           string `yaml:"name"`
-	Model          string `yaml:"model"`
-	ReasoningLevel string `yaml:"reasoning-level"`
+	Name           string            `yaml:"name"`
+	Model          string            `yaml:"model"`
+	ReasoningLevel string            `yaml:"reasoning-level"`
+	PerAgent       map[string]string `yaml:"per-agent"`
 }
 
 type registryFile struct {
@@ -96,7 +98,8 @@ func (r *Registry) ValidateAgentModel(agentName, model string) (Definition, *LLM
 		if !ok {
 			return Definition{}, nil, fmt.Errorf("default model %q for agent %q missing from llms.yml", defaultModel, agentName)
 		}
-		return agent, &llm, nil
+		resolved := llm.resolvedForAgent(agentName)
+		return agent, &resolved, nil
 	}
 	llm, ok := r.LLM(model)
 	if !ok {
@@ -104,8 +107,26 @@ func (r *Registry) ValidateAgentModel(agentName, model string) (Definition, *LLM
 	}
 	for _, m := range agent.SupportsLLMs {
 		if m == model {
-			return agent, &llm, nil
+			resolved := llm.resolvedForAgent(agentName)
+			return agent, &resolved, nil
 		}
 	}
 	return Definition{}, nil, fmt.Errorf("agent %q does not support model %q", agentName, model)
+}
+
+func (l LLMDefinition) resolvedForAgent(agentName string) LLMDefinition {
+	if agentName == "" {
+		return l
+	}
+	if override := strings.TrimSpace(l.perAgentModel(agentName)); override != "" {
+		l.Model = override
+	}
+	return l
+}
+
+func (l LLMDefinition) perAgentModel(agentName string) string {
+	if len(l.PerAgent) == 0 {
+		return ""
+	}
+	return l.PerAgent[agentName]
 }

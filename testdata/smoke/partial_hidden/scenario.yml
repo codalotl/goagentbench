@@ -1,6 +1,6 @@
 # Might delete this one, since it's so artificial.
 # This problem is designed to be fast to implement and test, validating the harness itself
-name: Very easy, isolated problem - implement IsSorted.
+name: Tests partial credit with hidden tests
 repo: github.com/codalotl/goagentbench
 commit: aefb88dbb06595bbb763a885413cfc3fa93f234c
 
@@ -13,7 +13,6 @@ classification:
 setup: null
 
 agent:
-  allow-multiple-turns-on-failed-verify: true
   instructions: |
     Write a new package at internal/sorting (the package must be named `package sorting`):
 
@@ -33,9 +32,9 @@ agent:
 
 verify:
   copy:
-    - from: gab_sorted_test.go 
+    - from: gab_sorted_partial_test.go 
       to: internal/sorting
   only-modify:
     - internal/sorting
-  tests:
+  partial-tests:
     - ./internal/sorting

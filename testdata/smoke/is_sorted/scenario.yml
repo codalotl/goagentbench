@@ -1,0 +1,39 @@
+name: Tests allow-multiple-turns-on-failed-verify
+repo: github.com/codalotl/goagentbench
+commit: aefb88dbb06595bbb763a885413cfc3fa93f234c
+
+classification:
+  type: build-package
+  has-spec: false
+  single-package: true
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  allow-multiple-turns-on-failed-verify: true
+  instructions: |
+    Write a new package at internal/sorting (the package must be named `package sorting`):
+
+    1. Implement exactly one exported function:
+
+      func IsSorted(nums []int) bool
+
+    2. Behavior:
+
+      - Return true if and only if nums is in non-decreasing order:
+          nums[i] >= nums[i-1] for all valid i.
+      - If nums is empty or has one element, return true.
+
+    3. You may add unexported helpers, but:
+      - IsSorted must be the only exported symbol.
+      - Do not define main, do not read input, and do not print anything.
+
+verify:
+  copy:
+    - from: gab_sorted_test.go 
+      to: internal/sorting
+  only-modify:
+    - internal/sorting
+  tests:
+    - ./internal/sorting

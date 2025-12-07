@@ -119,9 +119,6 @@ func Validate(sc *Scenario, scenarioDir string) error {
 	if strings.TrimSpace(sc.Agent.Instructions) == "" {
 		return errors.New("agent.instructions is required")
 	}
-	if len(sc.Verify.Tests) == 0 {
-		return errors.New("verify.tests is required")
-	}
 	if _, err := sc.TestTargets(); err != nil {
 		return err
 	}

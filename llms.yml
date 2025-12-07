@@ -2,7 +2,62 @@
 # For models like gpt-5 which support reasoning levels, each configuration should be listed as a separate model.
 # Only list **the best** models per LLM provider, and within those, only the best configurations.
 # Note that "the best" does not necessarily mean smartest - there can be a few different categories of "best" (fast vs smart).
+#
+# The 'name' field is referred to by agents.yml and by the --model CLI flag. The 'model' is what is sent to the actual agent.
+# If two agents can use the same conceptual model, but refer to them differently (ex: 'claude-4.5-opus-high-thinking' vs 'claude-opus-4-5' might be the same), then
+# we can add a 'per-agent' field to the llm object with per-agent override.
+#
+# For Claude models, reasoning-level: high -> "extended thinking".
 llms:
+  #
+  # OpenAI Models
+  #
   - name: gpt-5.1-codex-high
     model: gpt-5.1-codex
     reasoning-level: high
+    per-agent:
+      cursor-agent: gpt-5.1-codex-high
+  - name: gpt-5.1-codex-max-xhigh
+    model: gpt-5.1-codex-max
+    reasoning-level: xhigh
+  - name: gpt-5.1-codex-max-high
+    model: gpt-5.1-codex-max
+    reasoning-level: high
+  - name: gpt-5.1-codex-max-medium
+    model: gpt-5.1-codex-max
+    reasoning-level: medium
+  - name: gpt-5.1-codex-max-low
+    model: gpt-5.1-codex-max
+    reasoning-level: low
+  
+  #
+  # XAI Models
+  #
+  - name: grok-code-fast-1
+    model: grok-code-fast-1
+  
+  #
+  # Cursor Models
+  #
+  - name: composer-1
+    model: composer-1
+
+  #
+  # Cursor Models
+  #
+  - name: gemini-3-pro
+    model: gemini-3-pro
+  
+  #
+  # Anthropic Models
+  #
+  - name: claude-opus-4.5-thinking
+    model: claude-opus-4-5
+    reasoning-level: high
+    per-agent:
+      cursor-agent: claude-4.5-opus-high-thinking
+  - name: claude-sonnet-4.5-thinking
+    model: claude-sonnet-4-5
+    reasoning-level: high
+    per-agent:
+      cursor-agent: claude-4.5-sonnet-thinking
