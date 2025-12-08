@@ -182,7 +182,11 @@ func validateCommitShape(commit string) error {
 
 // NormalizeRepoURL returns a cloneable repo URL.
 func NormalizeRepoURL(repo string) string {
-	if strings.HasPrefix(repo, "http://") || strings.HasPrefix(repo, "https://") || strings.HasPrefix(repo, "git@") {
+	if strings.HasPrefix(repo, "http://") ||
+		strings.HasPrefix(repo, "https://") ||
+		strings.HasPrefix(repo, "git@") ||
+		strings.HasPrefix(repo, "file://") ||
+		filepath.IsAbs(repo) {
 		return repo
 	}
 	return "https://" + repo
