@@ -1,0 +1,36 @@
+name: Rename only-modify -> must-modify + impl
+repo: github.com/codalotl/goagentbench
+commit: 4bb63717b61f77342c2b6e67eb597a2f4a5c53d1
+
+classification:
+  type: feature
+  has-spec: true
+  single-package: false
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    Read SPEC.md and README.md.
+
+    Rename scenario's only-modify to must-modify.
+
+    The behavior of must-modify is as follows:
+
+    # Must modify these files or directories. Failure to modify these results in a verify -> failed.
+    # If an element is a directory (optional slash allowed), we can only modify/create/delete files directly in that directory (nonrecursively). Supports globs.
+    must-modify:
+      - internal/q/tui
+    
+    Make sure this is implemented properly
+
+verify:
+  copy:
+    - from: gab_test.go 
+      to: internal/verify
+  must-modify:
+    - internal/scenario
+    - internal/verify
+  tests:
+    - ./...

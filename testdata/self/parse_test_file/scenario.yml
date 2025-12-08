@@ -47,9 +47,8 @@ verify:
   copy:
     - from: gab_scenario_test.go 
       to: internal/scenario
-  only-modify:
+  must-modify:
     - internal/scenario
     - internal/verify
-    - testdata # optionally can fix scenario in tui_build
   tests:
     - ./...

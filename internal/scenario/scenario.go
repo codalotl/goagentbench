@@ -46,7 +46,7 @@ type AgentConfig struct {
 }
 
 type VerifyConfig struct {
-	OnlyModify   StringList `yaml:"only-modify"`
+	MustModify   StringList `yaml:"must-modify"`
 	NoModify     []string   `yaml:"no-modify"`
 	Copy         []CopyStep `yaml:"copy"`
 	Tests        StringList `yaml:"tests"`
@@ -134,7 +134,7 @@ func Validate(sc *Scenario, scenarioDir string) error {
 	if err := validateCommitShape(sc.Commit); err != nil {
 		return err
 	}
-	if err := validateOnlyModify(sc.Verify.OnlyModify); err != nil {
+	if err := validateMustModify(sc.Verify.MustModify); err != nil {
 		return err
 	}
 	if err := checkRemoteCommit(sc.Repo, sc.Commit); err != nil {
@@ -159,11 +159,11 @@ func validateCopySteps(cfg *SetupConfig, scenarioDir string) error {
 	return nil
 }
 
-func validateOnlyModify(only StringList) error {
+func validateMustModify(entries StringList) error {
 	// Allow empty slice.
-	for _, v := range only {
+	for _, v := range entries {
 		if strings.TrimSpace(v) == "" {
-			return errors.New("verify.only-modify entries cannot be empty")
+			return errors.New("verify.must-modify entries cannot be empty")
 		}
 	}
 	return nil

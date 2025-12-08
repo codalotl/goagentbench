@@ -149,9 +149,9 @@ agent:
 # - (In other words, usually it's TestXxx. But when the test uses t.Run, often in a table driven test, each t.Run also counts as a test).
 verify:
 
-  # Only modify these files or directories
-  # If an element is a directory, we can only modify/create/delete files directly in that directory. Supports globs.
-  only-modify:
+  # Must modify these files or directories. Failure to modify these results in a verify -> failed.
+  # If an element is a directory (optional slash allowed), we can only modify/create/delete files directly in that directory (nonrecursively). Supports globs.
+  must-modify:
     - internal/q/tui
 
   # May not modify any of these files/dirs/globs.

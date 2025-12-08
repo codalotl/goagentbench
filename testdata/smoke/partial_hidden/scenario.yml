@@ -34,7 +34,7 @@ verify:
   copy:
     - from: gab_sorted_partial_test.go 
       to: internal/sorting
-  only-modify:
+  must-modify:
     - internal/sorting
   partial-tests:
     - ./internal/sorting

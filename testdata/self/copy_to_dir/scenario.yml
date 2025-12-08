@@ -26,7 +26,7 @@ verify:
   copy:
     - from: gab_copy_test.go 
       to: internal/fsutil
-  only-modify:
+  must-modify:
     - internal/fstuil
     - internal/setup
     - internal/verify

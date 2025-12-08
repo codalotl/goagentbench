@@ -33,7 +33,7 @@ verify:
   copy:
     - from: gab_sorted_test.go 
       to: internal/sorting
-  only-modify:
+  must-modify:
     - internal/sorting
   tests:
     - ./internal/sorting

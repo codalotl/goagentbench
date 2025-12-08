@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -54,6 +55,9 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	if progress != nil && progress.RunID == "" && runStart != nil {
 		progress.RunID = runStart.RunID
 	}
+	if err := checkModificationRules(sc, workspaceDir); err != nil {
+		return nil, err
+	}
 	cleanup, err := applyVerifyCopies(sc, scenarioDir, workspaceDir)
 	if err != nil {
 		return nil, err
@@ -94,6 +98,151 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	}
 	printSummary(printer, report)
 	return &Result{Report: report}, nil
+}
+
+var verifyIgnoredFiles = map[string]struct{}{
+	".run-start.json":    {},
+	".run-progress.json": {},
+}
+
+func checkModificationRules(sc *scenario.Scenario, workspaceDir string) error {
+	changes, err := listWorkspaceChanges(workspaceDir)
+	if err != nil {
+		return err
+	}
+	changes = filterIgnoredChanges(changes)
+	if len(changes) == 0 {
+		if len(sc.Verify.MustModify) == 0 {
+			return nil
+		}
+		return fmt.Errorf("workspace has no changes but verify.must-modify requires modifications")
+	}
+
+	var problems []string
+	for _, path := range changes {
+		if matchesPathRule(path, sc.Verify.NoModify, workspaceDir) {
+			problems = append(problems, fmt.Sprintf("%s is blocked by verify.no-modify", path))
+		}
+	}
+
+	if len(sc.Verify.MustModify) > 0 {
+		for _, rule := range sc.Verify.MustModify {
+			if !anyChangeMatchesRule(changes, rule, workspaceDir) {
+				problems = append(problems, fmt.Sprintf("%s in verify.must-modify was not modified", rule))
+			}
+		}
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+	sort.Strings(problems)
+	return fmt.Errorf("workspace changes violate verification rules:\n- %s", strings.Join(problems, "\n- "))
+}
+
+func listWorkspaceChanges(workspaceDir string) ([]string, error) {
+	cmds := [][]string{
+		{"git", "diff", "--name-only", "--diff-filter=ACDMRTUXB"},
+		{"git", "diff", "--name-only", "--diff-filter=ACDMRTUXB", "--cached"},
+		{"git", "ls-files", "--others", "--exclude-standard"},
+	}
+	paths := map[string]struct{}{}
+	for _, args := range cmds {
+		out, err := runInWorkspace(workspaceDir, args...)
+		if err != nil {
+			return nil, err
+		}
+		scanner := bufio.NewScanner(bytes.NewReader(out))
+		for scanner.Scan() {
+			p := strings.TrimSpace(scanner.Text())
+			if p == "" {
+				continue
+			}
+			paths[filepath.Clean(p)] = struct{}{}
+		}
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
+	}
+	list := make([]string, 0, len(paths))
+	for p := range paths {
+		list = append(list, p)
+	}
+	sort.Strings(list)
+	return list, nil
+}
+
+func runInWorkspace(workspaceDir string, args ...string) ([]byte, error) {
+	if len(args) == 0 {
+		return nil, fmt.Errorf("no command provided")
+	}
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = workspaceDir
+	out, err := cmd.Output()
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("%s: %s", strings.Join(cmd.Args, " "), strings.TrimSpace(string(ee.Stderr)))
+		}
+		return nil, err
+	}
+	return out, nil
+}
+
+func filterIgnoredChanges(paths []string) []string {
+	out := make([]string, 0, len(paths))
+	for _, p := range paths {
+		clean := filepath.Clean(p)
+		if _, ok := verifyIgnoredFiles[clean]; ok {
+			continue
+		}
+		out = append(out, clean)
+	}
+	return out
+}
+
+func anyChangeMatchesRule(changes []string, rule, workspaceDir string) bool {
+	for _, path := range changes {
+		if pathMatchesRule(path, rule, workspaceDir) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchesPathRule(path string, rules []string, workspaceDir string) bool {
+	for _, rule := range rules {
+		if pathMatchesRule(path, rule, workspaceDir) {
+			return true
+		}
+	}
+	return false
+}
+
+func pathMatchesRule(path, rule, workspaceDir string) bool {
+	if strings.TrimSpace(rule) == "" {
+		return false
+	}
+	cleanPath := filepath.Clean(path)
+	if strings.ContainsAny(rule, "*?[") {
+		matched, err := filepath.Match(rule, cleanPath)
+		return err == nil && matched
+	}
+	cleanRule := filepath.Clean(rule)
+	if cleanPath == cleanRule {
+		return true
+	}
+	if looksLikeDirRule(rule, workspaceDir) {
+		return filepath.Dir(cleanPath) == cleanRule
+	}
+	return false
+}
+
+func looksLikeDirRule(rule, workspaceDir string) bool {
+	if strings.HasSuffix(rule, string(filepath.Separator)) {
+		return true
+	}
+	info, err := os.Stat(filepath.Join(workspaceDir, filepath.Clean(rule)))
+	return err == nil && info.IsDir()
 }
 
 func applyVerifyCopies(sc *scenario.Scenario, scenarioDir, workspaceDir string) (func(), error) {
