@@ -18,16 +18,16 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
 
 	tests := []struct {
-		name    string
-		apply   func(t *testing.T, repo string)
-		wantErr string
+		name        string
+		apply       func(t *testing.T, repo string)
+		wantSuccess bool
 	}{
 		{
 			name: "requiresMustModifyChanges",
 			apply: func(t *testing.T, repo string) {
 				// keep repo clean so must-modify fails
 			},
-			wantErr: "requires modifications",
+			wantSuccess: false,
 		},
 		{
 			name: "failsOnNoModifyChanges",
@@ -35,14 +35,14 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 				writeFile(t, repo, "allowed/base.txt", "changed")
 				writeFile(t, repo, "forbidden/secret.txt", "leaked")
 			},
-			wantErr: "blocked by verify.no-modify",
+			wantSuccess: false,
 		},
 		{
 			name: "mustModifyRuleNotSatisfied",
 			apply: func(t *testing.T, repo string) {
 				writeFile(t, repo, "other/change.txt", "update")
 			},
-			wantErr: "allowed",
+			wantSuccess: false,
 		},
 		{
 			name: "directoryRuleIsNotRecursive",
@@ -50,7 +50,7 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 				require.NoError(t, os.MkdirAll(filepath.Join(repo, "allowed/sub"), 0o755))
 				writeFile(t, repo, "allowed/sub/nested.txt", "nested change")
 			},
-			wantErr: "allowed",
+			wantSuccess: false,
 		},
 		{
 			name: "passesWithAllowedChangesAndIgnoresMetadata",
@@ -59,6 +59,7 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 				writeFile(t, repo, ".run-start.json", "{}")
 				writeFile(t, repo, ".run-progress.json", "{}")
 			},
+			wantSuccess: true,
 		},
 	}
 
@@ -78,16 +79,19 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 			}
 
 			res, err := verify.Run(context.Background(), opts, baseScenario(scenarioName))
-			if tt.wantErr != "" {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tt.wantErr)
-				return
-			}
-
 			require.NoError(t, err)
 			require.NotNil(t, res)
 			require.NotNil(t, res.Report)
-			require.True(t, res.Report.Success)
+			require.Equal(t, tt.wantSuccess, res.Report.Success)
+
+			if tt.wantSuccess {
+				require.Empty(t, res.Report.Tests)
+				return
+			}
+
+			require.Len(t, res.Report.Tests, 1)
+			require.False(t, res.Report.Tests[0].Passed)
+			require.NotEmpty(t, res.Report.Tests[0].Error)
 		})
 	}
 }
@@ -120,6 +124,7 @@ func initIntegrationRepo(t *testing.T, workspaceRoot, scenarioName string) strin
 	runGit(t, dir, "config", "user.name", "Test User")
 
 	writeFile(t, dir, "allowed/base.txt", "original")
+	writeFile(t, dir, "allowed/sub/sub1.txt", "original")
 	writeFile(t, dir, "forbidden/secret.txt", "keep")
 
 	runGit(t, dir, "add", ".")

@@ -49,6 +49,5 @@ verify:
       to: internal/scenario
   must-modify:
     - internal/scenario
-    - internal/verify
   tests:
     - ./...

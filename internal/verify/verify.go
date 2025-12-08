@@ -55,8 +55,36 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	if progress != nil && progress.RunID == "" && runStart != nil {
 		progress.RunID = runStart.RunID
 	}
-	if err := checkModificationRules(sc, workspaceDir); err != nil {
+	problems, err := checkModificationRules(sc, workspaceDir)
+	if err != nil {
 		return nil, err
+	}
+	if len(problems) > 0 {
+		report := &types.VerificationReport{
+			RunID:        runID(runStart, progress),
+			Scenario:     opts.ScenarioName,
+			Agent:        agentName(runStart, progress),
+			AgentVersion: agentVersion(runStart, progress),
+			Model:        modelName(runStart, progress),
+			StartedAt:    startedAt(runStart),
+			Progress:     progress,
+			VerifiedAt:   time.Now(),
+			Success:      false,
+			Tests: []types.TestResult{
+				{
+					Name:   "verify.modification-rules",
+					Passed: false,
+					Error:  strings.Join(problems, "\n"),
+				},
+			},
+		}
+		if !opts.OnlyReport {
+			if err := writeReport(opts, report); err != nil {
+				return nil, err
+			}
+		}
+		printSummary(printer, report)
+		return &Result{Report: report}, nil
 	}
 	cleanup, err := applyVerifyCopies(sc, scenarioDir, workspaceDir)
 	if err != nil {
@@ -105,17 +133,17 @@ var verifyIgnoredFiles = map[string]struct{}{
 	".run-progress.json": {},
 }
 
-func checkModificationRules(sc *scenario.Scenario, workspaceDir string) error {
+func checkModificationRules(sc *scenario.Scenario, workspaceDir string) ([]string, error) {
 	changes, err := listWorkspaceChanges(workspaceDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	changes = filterIgnoredChanges(changes)
 	if len(changes) == 0 {
 		if len(sc.Verify.MustModify) == 0 {
-			return nil
+			return nil, nil
 		}
-		return fmt.Errorf("workspace has no changes but verify.must-modify requires modifications")
+		return []string{"workspace has no changes but verify.must-modify requires modifications"}, nil
 	}
 
 	var problems []string
@@ -134,10 +162,10 @@ func checkModificationRules(sc *scenario.Scenario, workspaceDir string) error {
 	}
 
 	if len(problems) == 0 {
-		return nil
+		return nil, nil
 	}
 	sort.Strings(problems)
-	return fmt.Errorf("workspace changes violate verification rules:\n- %s", strings.Join(problems, "\n- "))
+	return problems, nil
 }
 
 func listWorkspaceChanges(workspaceDir string) ([]string, error) {

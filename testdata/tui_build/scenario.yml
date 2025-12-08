@@ -34,7 +34,7 @@ agent:
 # - Ensure the copied test files type check correctly. This could be a better way to verify snippet signatures.
 # - Ensure some files are not modified. Ex: only files in package are modified; no new modules installed.
 verify:
-  must-modify: internal/q/tui # must-modify-recursive could also exist
+  must-modify: internal/q/tui
   no-modify:
     - internal/q/tui/golden* # Do not modify any golden test files
     - internal/q/tui/SPEC.md # Do not modify the spec.
