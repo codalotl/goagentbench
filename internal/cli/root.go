@@ -32,6 +32,7 @@ func Execute() error {
 	root.AddCommand(newValidateCmd())
 	root.AddCommand(newSetupCmd(workspacePath))
 	root.AddCommand(newRunAgentCmd(workspacePath))
+	root.AddCommand(newExecCmd(workspacePath))
 	root.AddCommand(newVerifyCmd(workspacePath))
 	return root.Execute()
 }
@@ -130,6 +131,68 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
 	cmd.Flags().StringVar(&modelName, "model", "", "model to use")
 	cmd.Flags().BoolVar(&onlyStart, "only-start", false, "only create .run-start.json without running agent")
+	return cmd
+}
+
+func newExecCmd(workspacePath string) *cobra.Command {
+	var agentName string
+	var modelName string
+	cmd := &cobra.Command{
+		Use:   "exec --agent=<agent> [--model=<model>] <scenario>",
+		Short: "Validate, set up, run, and verify a scenario",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+			if agentName == "" {
+				return fmt.Errorf("--agent is required")
+			}
+			printer := output.NewPrinter(os.Stdout)
+			scenarioName, err := workspace.CleanScenario(args[0])
+			if err != nil {
+				return err
+			}
+			scenarioPath := workspace.ScenarioFile(scenarioName)
+			sc, err := scenario.Load(scenarioPath)
+			if err != nil {
+				return err
+			}
+			if err := scenario.Validate(sc, workspace.ScenarioDir(scenarioName)); err != nil {
+				return err
+			}
+			if err := printer.App("Scenario validated."); err != nil {
+				return err
+			}
+			if err := setup.Run(ctx, printer, scenarioName, workspacePath, sc); err != nil {
+				return err
+			}
+			if err := printer.App("Scenario setup complete."); err != nil {
+				return err
+			}
+			rootDir, _ := os.Getwd()
+			registry, err := agents.LoadRegistry(rootDir)
+			if err != nil {
+				return err
+			}
+			agentDef, llmDef, err := registry.ValidateAgentModel(agentName, modelName)
+			if err != nil {
+				return err
+			}
+			if err := runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc, false); err != nil {
+				return err
+			}
+			if _, err := verify.Run(ctx, verify.Options{
+				ScenarioName:  scenarioName,
+				WorkspacePath: workspacePath,
+				RootPath:      rootDir,
+				Printer:       printer,
+			}, sc); err != nil {
+				return err
+			}
+			return printer.App("Verification complete.")
+		},
+	}
+	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
+	cmd.Flags().StringVar(&modelName, "model", "", "model to use")
 	return cmd
 }
 

@@ -1,0 +1,208 @@
+diff --git a/internal/q/tui/golden_helpers_test.go b/internal/q/tui/golden_helpers_test.go
+index a97e8f9..8c60626 100644
+--- a/internal/q/tui/golden_helpers_test.go
++++ b/internal/q/tui/golden_helpers_test.go
+@@ -2,13 +2,17 @@ package tui_test
+ 
+ import (
+ 	"bytes"
++	"fmt"
+ 	"io"
+ 	"os"
++	"os/signal"
+ 	"runtime"
+ 	"sync"
++	"syscall"
+ 	"testing"
+ 	"time"
+ 
++	"github.com/codalotl/codalotl/internal/q/tui"
+ 	"github.com/creack/pty"
+ 	"golang.org/x/sys/unix"
+ )
+@@ -90,12 +94,56 @@ func setupTestTTY(t *testing.T, injectUnblock bool, capture io.Writer) (*os.File
+ 		_ = input.Close()
+ 		_ = tty.Close()
+ 		_ = ptmx.Close()
+-		<-drainDone
++		select {
++		case <-drainDone:
++		case <-time.After(100 * time.Millisecond):
++		}
+ 	})
+ 
+ 	return input, tty, ptmx
+ }
+ 
++const tuiTestTimeout = time.Second
++
++// runTUI executes tui.RunTUI with a hard timeout so faulty implementations don't
++// cause the tests to hang indefinitely. Panics from RunTUI are propagated.
++func runTUI(t *testing.T, model tui.Model, opts tui.Options) error {
++	t.Helper()
++
++	type result struct {
++		err   error
++		panic any
++	}
++
++	done := make(chan result, 1)
++	go func() {
++		defer func() {
++			if r := recover(); r != nil {
++				done <- result{panic: r}
++				return
++			}
++		}()
++		done <- result{err: tui.RunTUI(model, opts)}
++	}()
++
++	timer := time.NewTimer(tuiTestTimeout)
++	defer timer.Stop()
++
++	select {
++	case res := <-done:
++		if res.panic != nil {
++			panic(res.panic)
++		}
++		return res.err
++	case <-timer.C:
++		buf := make([]byte, 1<<16)
++		n := runtime.Stack(buf, true)
++		// Make sure ctrl-c and other signals work again if the TUI has hijacked them.
++		signal.Reset(syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP, syscall.SIGCONT)
++		panic(fmt.Sprintf("tui.RunTUI did not finish within %s\n\nGoroutine dump:\n%s", tuiTestTimeout, string(buf[:n])))
++	}
++}
++
+ type syncedBuffer struct {
+ 	mu  sync.Mutex
+ 	buf bytes.Buffer
+diff --git a/internal/q/tui/golden_key_test.go b/internal/q/tui/golden_key_test.go
+index 46b4f25..aeca5c3 100644
+--- a/internal/q/tui/golden_key_test.go
++++ b/internal/q/tui/golden_key_test.go
+@@ -115,7 +115,7 @@ func TestKeyboardInput(t *testing.T) {
+ 		timeout:   500 * time.Millisecond,
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+diff --git a/internal/q/tui/golden_panic_unix_test.go b/internal/q/tui/golden_panic_unix_test.go
+index 9690de0..581bda2 100644
+--- a/internal/q/tui/golden_panic_unix_test.go
++++ b/internal/q/tui/golden_panic_unix_test.go
+@@ -73,7 +73,7 @@ func runPanicScenario(t *testing.T, panicMessage string, configure func(*flexibl
+ 			}
+ 			recovered = recover()
+ 		}()
+-		_ = tui.RunTUI(model, tui.Options{
++		_ = runTUI(t, model, tui.Options{
+ 			Input:  input,
+ 			Output: output,
+ 		})
+diff --git a/internal/q/tui/golden_suspend_unix_test.go b/internal/q/tui/golden_suspend_unix_test.go
+index e9f41bd..a48d488 100644
+--- a/internal/q/tui/golden_suspend_unix_test.go
++++ b/internal/q/tui/golden_suspend_unix_test.go
+@@ -85,7 +85,7 @@ func TestSuspendHelperProcess(t *testing.T) {
+ 	fmt.Println(helperReady)
+ 
+ 	model := &suspendTestModel{}
+-	if err := tui.RunTUI(model, tui.Options{
++	if err := runTUI(t, model, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	}); err != nil {
+diff --git a/internal/q/tui/golden_test.go b/internal/q/tui/golden_test.go
+index 89d2a0b..1aab96a 100644
+--- a/internal/q/tui/golden_test.go
++++ b/internal/q/tui/golden_test.go
+@@ -73,7 +73,7 @@ func TestTUIBasic(t *testing.T) {
+ 	input, output := requireTestTTY(t)
+ 
+ 	m := &basicModel{}
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -138,7 +138,7 @@ func TestQuitWithCancel(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -170,7 +170,7 @@ func TestTerminateWithCancel(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -208,7 +208,7 @@ func TestSend(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -245,7 +245,7 @@ func TestSendOnceAfter(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -287,7 +287,7 @@ func TestSendPeriodically(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -353,7 +353,7 @@ func TestGo(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(m, tui.Options{
++	err := runTUI(t, m, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+diff --git a/internal/q/tui/golden_view_output_test.go b/internal/q/tui/golden_view_output_test.go
+index b1d39a4..2347e1b 100644
+--- a/internal/q/tui/golden_view_output_test.go
++++ b/internal/q/tui/golden_view_output_test.go
+@@ -27,7 +27,7 @@ func TestViewOutputsSingleLine(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(model, tui.Options{
++	err := runTUI(t, model, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})
+@@ -79,7 +79,7 @@ func TestViewRequiresLineDiffing(t *testing.T) {
+ 		},
+ 	}
+ 
+-	err := tui.RunTUI(model, tui.Options{
++	err := runTUI(t, model, tui.Options{
+ 		Input:  input,
+ 		Output: output,
+ 	})

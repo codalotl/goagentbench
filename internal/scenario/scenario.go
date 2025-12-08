@@ -31,7 +31,8 @@ type Classification struct {
 }
 
 type SetupConfig struct {
-	Copy []CopyStep `yaml:"copy"`
+	Copy  []CopyStep `yaml:"copy"`
+	Patch StringList `yaml:"patch"`
 }
 
 type CopyStep struct {
@@ -131,6 +132,9 @@ func Validate(sc *Scenario, scenarioDir string) error {
 	if err := validateCopySteps(&SetupConfig{Copy: sc.Verify.Copy}, scenarioDir); err != nil {
 		return err
 	}
+	if err := validatePatchSteps(sc.Setup, scenarioDir); err != nil {
+		return err
+	}
 	if err := validateCommitShape(sc.Commit); err != nil {
 		return err
 	}
@@ -154,6 +158,30 @@ func validateCopySteps(cfg *SetupConfig, scenarioDir string) error {
 		src := filepath.Join(scenarioDir, c.From)
 		if _, err := os.Stat(src); err != nil {
 			return fmt.Errorf("copy source does not exist: %s", c.From)
+		}
+	}
+	return nil
+}
+
+func validatePatchSteps(cfg *SetupConfig, scenarioDir string) error {
+	if cfg == nil {
+		return nil
+	}
+	for _, entry := range cfg.Patch {
+		name := strings.TrimSpace(entry)
+		if name == "" {
+			return errors.New("setup.patch entries cannot be empty")
+		}
+		path := filepath.Join(scenarioDir, name)
+		info, err := os.Stat(path)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("setup.patch file does not exist: %s", name)
+			}
+			return err
+		}
+		if info.IsDir() {
+			return fmt.Errorf("setup.patch entry must be a file: %s", name)
 		}
 	}
 	return nil

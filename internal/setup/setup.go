@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/codalotl/goagentbench/internal/fsutil"
 	"github.com/codalotl/goagentbench/internal/output"
@@ -47,6 +48,15 @@ func Run(ctx context.Context, printer *output.Printer, scenarioName, workspacePa
 				return err
 			}
 		}
+		for _, p := range sc.Setup.Patch {
+			patch := strings.TrimSpace(p)
+			if err := printer.Appf("Applying patch %s", patch); err != nil {
+				return err
+			}
+			if err := applyPatch(ctx, printer, targetDir, scenarioDir, patch); err != nil {
+				return err
+			}
+		}
 	}
 	if err := printer.App("Setup complete."); err != nil {
 		return err
@@ -74,4 +84,25 @@ func applyCopy(targetDir, scenarioDir string, step scenario.CopyStep) error {
 	undo, err := fsutil.CopyToDir(src, destDir, false)
 	_ = undo
 	return err
+}
+
+func applyPatch(ctx context.Context, printer *output.Printer, targetDir, scenarioDir, patch string) error {
+	if patch == "" {
+		return fmt.Errorf("patch name cannot be empty")
+	}
+	patchPath, err := fsutil.SafeJoin(scenarioDir, patch)
+	if err != nil {
+		return err
+	}
+	absPatchPath, err := filepath.Abs(patchPath)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Stat(absPatchPath); err != nil {
+		return err
+	}
+	if _, err := printer.RunCommand(ctx, targetDir, "git", "apply", absPatchPath); err != nil {
+		return fmt.Errorf("git apply %s failed: %w", absPatchPath, err)
+	}
+	return nil
 }

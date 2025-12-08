@@ -111,6 +111,10 @@ setup:
     - from: some_test.go # relative to scenario directory in `testdata`
       to: path/to/package # relative to $WORKSPACE/$SCENARIODIR. Can be ".".
   
+  # patch: apply the following patches. Each patch should be in git unified diff format (paths are relative to $WORKSPACE/$SCENARIODIR)
+  patch:
+    - somepatch.patch
+
   # FUTURE: we could do patches: array of patches. Could also do scripts: array of scripts.
 
 # Instructions and other agent configuration for this problem.

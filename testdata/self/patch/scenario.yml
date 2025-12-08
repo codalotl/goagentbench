@@ -1,0 +1,31 @@
+name: Implementing patch support during setup
+repo: github.com/codalotl/goagentbench
+commit: 30906ba07ac256d1454689dba19e27cc0c1d8d9c
+
+classification:
+  type: feature
+  has-spec: false
+  single-package: false
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    As part of setup, I the ability to apply patches. The scenario.yml patches look like this:
+
+    # patch: apply the following patches. Each patch should be in git unified diff format (paths are relative to $WORKSPACE/$SCENARIODIR)
+    patch:
+      - somepatch.patch
+
+    Implement this. You may write tets.
+
+verify:
+  copy:
+    - from: gab_test.go 
+      to: internal/setup
+  must-modify:
+    - internal/scenario
+    - internal/setup
+  tests:
+    - ./...

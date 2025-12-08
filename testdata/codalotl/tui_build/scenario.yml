@@ -1,0 +1,39 @@
+name: Building a TUI framework package from a spec
+repo: github.com/codalotl/codalotl
+commit: 70744dc5b999bce4d0ac82329b2cd7e2bfb2c252
+
+classification:
+  type: build-package
+  has-spec: true
+  single-package: true
+  sees-failing-tests: true
+
+
+setup:
+  patch:
+    - fastfail.patch # This prevents go test from taking forever to run.
+  
+  # commit the patch to a branch. This is so verify's no-modify can see if the agent modified tests, vs the patch.
+  exec:
+    - git switch -c gab_tui_build && git add -A && git commit -m "update tests"
+
+agent:
+  instructions: |
+    In internal/q/tui, read the SPEC.md and build the package according to the spec.
+    Do not install or use third party packages that aren't already used in go.mod.
+    Do not modify the SPEC.md or any provided tests. You may write new tests.
+
+    Be wary of timeouts. Unless you handle things properly, a failsafe in the testing suite will detect timeouts and panic.
+  allow-multiple-turns-on-failed-verify: true # If the agent ends its turn before solving the problem, this allows it to continue.
+
+  # idea: for big tasks like this, it may make sense to let planning agents do a planning phase. Non-planning agents
+  # can just get a turn where we give a generic "make a plan" instruction.
+  # plan: true
+
+verify:
+  must-modify: internal/q/tui
+  no-modify:
+    - internal/q/tui/golden*
+    - internal/q/tui/SPEC.md
+  tests:
+    - ./internal/q/tui
