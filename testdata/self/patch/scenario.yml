@@ -1,6 +1,6 @@
 name: Implementing patch support during setup
 repo: github.com/codalotl/goagentbench
-commit: 30906ba07ac256d1454689dba19e27cc0c1d8d9c
+commit: e357055abbabe9d0954f21aede1acba34c1f340f
 
 classification:
   type: feature
