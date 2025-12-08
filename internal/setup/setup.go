@@ -57,6 +57,18 @@ func Run(ctx context.Context, printer *output.Printer, scenarioName, workspacePa
 				return err
 			}
 		}
+		for _, execStep := range sc.Setup.Exec {
+			cmd := strings.TrimSpace(execStep)
+			if cmd == "" {
+				return fmt.Errorf("setup.exec entries cannot be empty")
+			}
+			if err := printer.Appf("Running setup exec: %s", cmd); err != nil {
+				return err
+			}
+			if _, err := printer.RunCommand(ctx, targetDir, "sh", "-c", cmd); err != nil {
+				return fmt.Errorf("setup exec %q failed: %w", cmd, err)
+			}
+		}
 	}
 	if err := printer.App("Setup complete."); err != nil {
 		return err

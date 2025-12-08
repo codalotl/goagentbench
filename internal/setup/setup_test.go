@@ -41,25 +41,26 @@ new file mode 100644
 `
 )
 
+func createRepo(t *testing.T) (string, string) {
+	t.Helper()
+	dir := t.TempDir()
+	runGit(t, dir, "init")
+	runGit(t, dir, "config", "user.email", "test@example.com")
+	runGit(t, dir, "config", "user.name", "Test User")
+
+	writeFile(t, filepath.Join(dir, "file.txt"), baseFileContent)
+
+	runGit(t, dir, "add", ".")
+	runGit(t, dir, "commit", "-m", "initial commit")
+	out := runGit(t, dir, "rev-parse", "HEAD")
+	commit := strings.TrimSpace(out)
+	return dir, commit
+}
+
 func TestRun_AppliesPatches(t *testing.T) {
 	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
+	t.Setenv(workspace.EnvVarScenarioRoot, t.TempDir())
 	ctx := context.Background()
-
-	createRepo := func(t *testing.T) (string, string) {
-		t.Helper()
-		dir := t.TempDir()
-		runGit(t, dir, "init")
-		runGit(t, dir, "config", "user.email", "test@example.com")
-		runGit(t, dir, "config", "user.name", "Test User")
-
-		writeFile(t, filepath.Join(dir, "file.txt"), baseFileContent)
-
-		runGit(t, dir, "add", ".")
-		runGit(t, dir, "commit", "-m", "initial commit")
-		out := runGit(t, dir, "rev-parse", "HEAD")
-		commit := strings.TrimSpace(out)
-		return dir, commit
-	}
 
 	type testCase struct {
 		name       string
@@ -125,7 +126,7 @@ func TestRun_AppliesPatches(t *testing.T) {
 			scenarioDir := workspace.ScenarioDir(scenarioName)
 			require.NoError(t, os.MkdirAll(scenarioDir, 0o755))
 			t.Cleanup(func() {
-				_ = os.RemoveAll(scenarioDir)
+				cleanupScenarioDir(t, scenarioDir)
 			})
 
 			for name, content := range tc.patchFiles {
@@ -163,6 +164,82 @@ func TestRun_AppliesPatches(t *testing.T) {
 	}
 }
 
+func TestRun_ExecSteps(t *testing.T) {
+	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
+	t.Setenv(workspace.EnvVarScenarioRoot, t.TempDir())
+	ctx := context.Background()
+
+	repoPath, commit := createRepo(t)
+	scenarioName := filepath.Join("setup", "exec_steps")
+	scenarioDir := workspace.ScenarioDir(scenarioName)
+	require.NoError(t, os.MkdirAll(scenarioDir, 0o755))
+	t.Cleanup(func() {
+		cleanupScenarioDir(t, scenarioDir)
+	})
+
+	writeFile(t, filepath.Join(scenarioDir, "single.patch"), singlePatch)
+
+	printer := output.NewPrinter(io.Discard)
+	sc := &scenario.Scenario{
+		Name:   "test-scenario",
+		Repo:   repoPath,
+		Commit: commit,
+		Classification: scenario.Classification{
+			Type: "build-package",
+		},
+		Agent: scenario.AgentConfig{
+			Instructions: "do stuff",
+		},
+		Setup: &scenario.SetupConfig{
+			Patch: scenario.StringList{"single.patch"},
+			Exec: scenario.StringList{
+				`grep -q "Patched content" file.txt`,
+				"echo exec-ran > exec.log",
+			},
+		},
+	}
+
+	workspacePath := filepath.Join(t.TempDir(), "workspace")
+	err := setup.Run(ctx, printer, scenarioName, workspacePath, sc)
+	require.NoError(t, err)
+
+	targetDir := workspace.WorkspaceScenarioDir(workspacePath, scenarioName)
+	content := readFile(t, filepath.Join(targetDir, "file.txt"))
+	require.Equal(t, "Patched content\n", content)
+	execLog := readFile(t, filepath.Join(targetDir, "exec.log"))
+	require.Equal(t, "exec-ran\n", execLog)
+}
+
+func TestRun_ExecStepFailure(t *testing.T) {
+	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
+	t.Setenv(workspace.EnvVarScenarioRoot, t.TempDir())
+	ctx := context.Background()
+
+	repoPath, commit := createRepo(t)
+	scenarioName := filepath.Join("setup", "exec_failure")
+
+	printer := output.NewPrinter(io.Discard)
+	sc := &scenario.Scenario{
+		Name:   "test-scenario",
+		Repo:   repoPath,
+		Commit: commit,
+		Classification: scenario.Classification{
+			Type: "build-package",
+		},
+		Agent: scenario.AgentConfig{
+			Instructions: "do stuff",
+		},
+		Setup: &scenario.SetupConfig{
+			Exec: scenario.StringList{"exit 7"},
+		},
+	}
+
+	workspacePath := filepath.Join(t.TempDir(), "workspace")
+	err := setup.Run(ctx, printer, scenarioName, workspacePath, sc)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "setup exec")
+}
+
 func runGit(t *testing.T, dir string, args ...string) string {
 	t.Helper()
 	cmd := exec.Command("git", args...)
@@ -183,4 +260,13 @@ func readFile(t *testing.T, path string) string {
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return string(data)
+}
+
+func cleanupScenarioDir(t *testing.T, dir string) {
+	t.Helper()
+	_ = os.RemoveAll(dir)
+	parent := filepath.Dir(dir)
+	if entries, err := os.ReadDir(parent); err == nil && len(entries) == 0 {
+		_ = os.Remove(parent)
+	}
 }

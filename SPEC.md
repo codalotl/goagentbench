@@ -114,6 +114,10 @@ setup:
   # patch: apply the following patches. Each patch should be in git unified diff format (paths are relative to $WORKSPACE/$SCENARIODIR)
   patch:
     - somepatch.patch
+  
+  # exec: run AFTER other setup steps (ex: copy/patch). Each exec item is just a shell command to run in $WORKSPACE/$SCENARIODIR.
+  exec:
+    - git switch -c gab_tui_build && git add -A && git commit -m "update tests"
 
   # FUTURE: we could do patches: array of patches. Could also do scripts: array of scripts.
 

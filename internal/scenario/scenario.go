@@ -33,6 +33,7 @@ type Classification struct {
 type SetupConfig struct {
 	Copy  []CopyStep `yaml:"copy"`
 	Patch StringList `yaml:"patch"`
+	Exec  StringList `yaml:"exec"`
 }
 
 type CopyStep struct {
@@ -135,6 +136,9 @@ func Validate(sc *Scenario, scenarioDir string) error {
 	if err := validatePatchSteps(sc.Setup, scenarioDir); err != nil {
 		return err
 	}
+	if err := validateExecSteps(sc.Setup); err != nil {
+		return err
+	}
 	if err := validateCommitShape(sc.Commit); err != nil {
 		return err
 	}
@@ -182,6 +186,18 @@ func validatePatchSteps(cfg *SetupConfig, scenarioDir string) error {
 		}
 		if info.IsDir() {
 			return fmt.Errorf("setup.patch entry must be a file: %s", name)
+		}
+	}
+	return nil
+}
+
+func validateExecSteps(cfg *SetupConfig) error {
+	if cfg == nil {
+		return nil
+	}
+	for _, entry := range cfg.Exec {
+		if strings.TrimSpace(entry) == "" {
+			return errors.New("setup.exec entries cannot be empty")
 		}
 	}
 	return nil

@@ -9,7 +9,9 @@ import (
 
 const (
 	EnvVarWorkspace     = "GOAGENTBENCH_WORKSPACE"
+	EnvVarScenarioRoot  = "GOAGENTBENCH_SCENARIO_ROOT"
 	DefaultWorkspaceDir = "workspace"
+	defaultScenarioRoot = "testdata"
 )
 
 // Path returns the workspace root directory, using GOAGENTBENCH_WORKSPACE when set.
@@ -36,7 +38,7 @@ func CleanScenario(name string) (string, error) {
 }
 
 func ScenarioDir(name string) string {
-	return filepath.Join("testdata", name)
+	return filepath.Join(scenarioRoot(), name)
 }
 
 func ScenarioFile(name string) string {
@@ -50,4 +52,11 @@ func WorkspaceScenarioDir(workspacePath, name string) string {
 // EnsureDir makes sure dir exists.
 func EnsureDir(path string) error {
 	return os.MkdirAll(path, 0o755)
+}
+
+func scenarioRoot() string {
+	if env := strings.TrimSpace(os.Getenv(EnvVarScenarioRoot)); env != "" {
+		return filepath.Clean(env)
+	}
+	return defaultScenarioRoot
 }

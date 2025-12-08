@@ -148,3 +148,21 @@ func TestValidate_DoesNotRequireVerifyTests(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+func TestValidate_EmptyExecEntries(t *testing.T) {
+	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
+	sc := &scenario.Scenario{
+		Name:           "demo",
+		Repo:           "github.com/example/repo",
+		Commit:         "1234567",
+		Classification: scenario.Classification{Type: "build-package"},
+		Agent:          scenario.AgentConfig{Instructions: "do the thing"},
+		Setup: &scenario.SetupConfig{
+			Exec: scenario.StringList{"   "},
+		},
+	}
+
+	err := scenario.Validate(sc, t.TempDir())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "setup.exec entries cannot be empty")
+}
