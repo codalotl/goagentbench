@@ -20,10 +20,11 @@ type RunStart struct {
 }
 
 type TokenUsage struct {
-	Input       int `json:"input"`
-	CachedInput int `json:"cached_input"`
-	Output      int `json:"output"`
-	Total       int `json:"total"`
+	Input            int `json:"input"`
+	CachedInput      int `json:"cached_input"`
+	WriteCachedInput int `json:"write_cached_input"`
+	Output           int `json:"output"`
+	Total            int `json:"total"`
 }
 
 type AgentMessage struct {

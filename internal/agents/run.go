@@ -80,6 +80,8 @@ func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (A
 		return newCodexAgent(ctx, printer), true
 	case "cursor-agent":
 		return newCursorAgent(ctx, printer), true
+	case "claude":
+		return newClaudeAgent(ctx, printer), true
 	default:
 		return nil, false
 	}
@@ -110,7 +112,7 @@ func runManual(rc RunContext, note string) (*RunOutcome, error) {
 }
 
 func runResultsToProgress(modelName string, rc RunContext, started time.Time, ended time.Time, results RunResults) *types.RunProgress {
-	promptTokens := results.InputTokens + results.CachedInputTokens
+	promptTokens := results.InputTokens + results.CachedInputTokens + results.WriteCachedInputTokens
 	completionTokens := results.OutputTokens
 	transcript := strings.TrimSpace(results.Transcript)
 	var transcripts []string
@@ -134,10 +136,11 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 		Session:         session,
 		DurationSeconds: ended.Sub(started).Seconds(),
 		TokenUsage: types.TokenUsage{
-			Input:       results.InputTokens,
-			CachedInput: results.CachedInputTokens,
-			Output:      completionTokens,
-			Total:       promptTokens + completionTokens,
+			Input:            results.InputTokens,
+			CachedInput:      results.CachedInputTokens,
+			WriteCachedInput: results.WriteCachedInputTokens,
+			Output:           completionTokens,
+			Total:            promptTokens + completionTokens,
 		},
 		Transcripts: transcripts,
 	}
