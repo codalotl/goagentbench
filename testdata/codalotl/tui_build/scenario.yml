@@ -24,7 +24,6 @@ agent:
     Do not modify the SPEC.md or any provided tests. You may write new tests.
 
     Be wary of timeouts. Unless you handle things properly, a failsafe in the testing suite will detect timeouts and panic.
-  allow-multiple-turns-on-failed-verify: true # If the agent ends its turn before solving the problem, this allows it to continue.
 
   # idea: for big tasks like this, it may make sense to let planning agents do a planning phase. Non-planning agents
   # can just get a turn where we give a generic "make a plan" instruction.
