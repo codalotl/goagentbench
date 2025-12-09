@@ -29,3 +29,8 @@ agents:
       - gpt-5.1-codex-high
       - claude-sonnet-4.5-thinking
       - claude-opus-4.5-thinking
+  - name: claude
+    version: 2.0.62
+    supports-llms:
+      - claude-sonnet-4.5-thinking
+      - claude-opus-4.5-thinking
