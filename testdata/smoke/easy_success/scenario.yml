@@ -34,5 +34,5 @@ verify:
       to: internal/sorting
   must-modify:
     - internal/sorting
-  partial-tests:
+  tests:
     - ./internal/sorting

@@ -2,6 +2,8 @@
 
 Benchmark AI coding agents on Go coding tasks.
 
+This benchmark aims to measure not only correctness, but the {correctness, cost, speed} tradeoff space.
+
 ## testdata and results
 
 Scenarios live in `testdata`. Each scenario has a `scenario.yml` file. No scenarios can be nested in other scenarios, scenarios can be nested in other non-scenario directories.

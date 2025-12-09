@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -56,6 +57,8 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 	}
 	args = append(args, trimmedInstructions)
 
+	envOverride := thinkingEnvOverride(llm.ReasoningLevel)
+
 	var outputBytes []byte
 	var err error
 	if c.printer != nil {
@@ -63,6 +66,9 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 	} else {
 		cmd := exec.CommandContext(c.ctx, "claude", args...)
 		cmd.Dir = cwd
+		if len(envOverride) > 0 {
+			cmd.Env = append(os.Environ(), envOverride...)
+		}
 		outputBytes, err = cmd.CombinedOutput()
 	}
 
@@ -185,4 +191,11 @@ func parseClaudeVersion(output string) string {
 		return fields[0]
 	}
 	return ""
+}
+
+func thinkingEnvOverride(reasoningLevel string) []string {
+	if !strings.EqualFold(strings.TrimSpace(reasoningLevel), "high") {
+		return nil
+	}
+	return []string{"MAX_THINKING_TOKENS=10000"}
 }
