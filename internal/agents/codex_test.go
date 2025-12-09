@@ -33,3 +33,18 @@ func TestParseCodexOutput_RawWhenNonJSON(t *testing.T) {
 	require.Zero(t, usage.cachedTokens)
 	require.Zero(t, usage.outputTokens)
 }
+
+func TestCalculateCodexCost(t *testing.T) {
+	nonCached := 2_000_000
+	cached := 1_000_000
+	output := 500_000
+
+	cost := calculateCodexCost(nonCached, cached, output)
+
+	require.InDelta(t, 7.625, cost, 1e-6)
+}
+
+func TestCalculateCodexCostZero(t *testing.T) {
+	cost := calculateCodexCost(0, 0, 0)
+	require.Zero(t, cost)
+}

@@ -20,11 +20,12 @@ type RunStart struct {
 }
 
 type TokenUsage struct {
-	Input            int `json:"input"`
-	CachedInput      int `json:"cached_input"`
-	WriteCachedInput int `json:"write_cached_input"`
-	Output           int `json:"output"`
-	Total            int `json:"total"`
+	Input            int     `json:"input"` // NON-cached input tokens
+	CachedInput      int     `json:"cached_input"`
+	WriteCachedInput int     `json:"write_cached_input"`
+	Output           int     `json:"output"`
+	Total            int     `json:"total"` // total is input + cached input + write cache input + output
+	Cost             float64 `json:"cost"`
 }
 
 type AgentMessage struct {

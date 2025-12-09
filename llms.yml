@@ -7,7 +7,7 @@
 # If two agents can use the same conceptual model, but refer to them differently (ex: 'claude-4.5-opus-high-thinking' vs 'claude-opus-4-5' might be the same), then
 # we can add a 'per-agent' field to the llm object with per-agent override.
 #
-# For Claude models, reasoning-level: high -> "extended thinking" (10k tokens if we need to set it manually).
+# For Claude models, reasoning-level: high -> "extended thinking" (10kMAX_THINKING_TOKENS=4096 tokens if we need to set it manually).
 llms:
   #
   # OpenAI Models
@@ -52,12 +52,12 @@ llms:
   # Anthropic Models
   #
   - name: claude-opus-4.5-thinking
-    model: claude-opus-4-5
+    model: claude-opus-4-5-20251101
     reasoning-level: high
     per-agent:
       cursor-agent: claude-4.5-opus-high-thinking
   - name: claude-sonnet-4.5-thinking
-    model: claude-sonnet-4-5
+    model: claude-sonnet-4-5-20250929
     reasoning-level: high
     per-agent:
       cursor-agent: claude-4.5-sonnet-thinking

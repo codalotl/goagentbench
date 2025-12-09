@@ -141,6 +141,7 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 			WriteCachedInput: results.WriteCachedInputTokens,
 			Output:           completionTokens,
 			Total:            promptTokens + completionTokens,
+			Cost:             results.Cost,
 		},
 		Transcripts: transcripts,
 	}

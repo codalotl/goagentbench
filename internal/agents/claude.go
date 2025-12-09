@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/codalotl/goagentbench/internal/output"
@@ -72,7 +73,7 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 		outputBytes, err = cmd.CombinedOutput()
 	}
 
-	transcript, usage, parsedSession := parseClaudeOutput(outputBytes)
+	transcript, usage, parsedSession, totalCost := parseClaudeOutput(outputBytes, model)
 
 	res := RunResults{
 		Transcript:             transcript,
@@ -81,6 +82,7 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 		WriteCachedInputTokens: usage.cacheWriteTokens,
 		OutputTokens:           usage.outputTokens,
 		Session:                session,
+		Cost:                   totalCost,
 	}
 	if res.Session == "" && parsedSession != "" {
 		res.Session = parsedSession
@@ -98,7 +100,7 @@ type claudeUsage struct {
 	outputTokens     int
 }
 
-func parseClaudeOutput(raw []byte) (string, claudeUsage, string) {
+func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, string, float64) {
 	reader := bytes.NewReader(raw)
 	scanner := bufio.NewScanner(reader)
 	buf := make([]byte, 0, 1024*1024)
@@ -106,6 +108,10 @@ func parseClaudeOutput(raw []byte) (string, claudeUsage, string) {
 
 	var usage claudeUsage
 	var session string
+	var totalCost float64
+	var usageFromModel bool
+	targetModel := normalizeClaudeModel(desiredModel)
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -121,12 +127,69 @@ func parseClaudeOutput(raw []byte) (string, claudeUsage, string) {
 			session = extractClaudeSessionID(payload)
 		}
 
-		if u, ok := payload["usage"]; ok {
-			updateClaudeUsage(&usage, u)
+		if targetModel == "" {
+			if modelName, ok := payload["model"].(string); ok && strings.TrimSpace(modelName) != "" {
+				targetModel = normalizeClaudeModel(modelName)
+			}
+		}
+		if targetModel == "" {
+			if modelSlug, ok := payload["model_slug"].(string); ok && strings.TrimSpace(modelSlug) != "" {
+				targetModel = normalizeClaudeModel(modelSlug)
+			}
+		}
+
+		if typ, _ := payload["type"].(string); typ == "result" {
+			if costVal, ok := payload["total_cost_usd"]; ok {
+				if parsedCost, ok := asFloat(costVal); ok {
+					totalCost = parsedCost
+				}
+			}
+
+			var modelUsage any
+			if mu, ok := payload["modelUsage"]; ok {
+				modelUsage = mu
+			} else if mu, ok := payload["model_usage"]; ok {
+				modelUsage = mu
+			}
+			if muMap, ok := modelUsage.(map[string]any); ok {
+				if targetModel == "" {
+					for key := range muMap {
+						targetModel = normalizeClaudeModel(key)
+						if targetModel != "" {
+							break
+						}
+					}
+				}
+				if targetModel != "" {
+					var combined claudeUsage
+					var matched bool
+					for key, val := range muMap {
+						if normalizeClaudeModel(key) != targetModel {
+							continue
+						}
+						entry, ok := val.(map[string]any)
+						if !ok {
+							continue
+						}
+						accumulateClaudeModelUsage(&combined, entry)
+						matched = true
+					}
+					if matched {
+						usage = combined
+						usageFromModel = true
+					}
+				}
+			}
+		}
+
+		if !usageFromModel {
+			if u, ok := payload["usage"]; ok {
+				updateClaudeUsage(&usage, u)
+			}
 		}
 	}
 
-	return string(raw), usage, session
+	return string(raw), usage, session, totalCost
 }
 
 func extractClaudeSessionID(payload map[string]any) string {
@@ -162,6 +225,55 @@ func updateClaudeUsage(target *claudeUsage, raw any) {
 }
 
 var claudeVersionPattern = regexp.MustCompile(`\d+\.\d+\.\d+(?:[-\w\.]+)?`)
+var claudeModelDateSuffix = regexp.MustCompile(`-\d{8}$`)
+
+func normalizeClaudeModel(model string) string {
+	model = strings.TrimSpace(model)
+	if model == "" {
+		return ""
+	}
+	return claudeModelDateSuffix.ReplaceAllString(model, "")
+}
+
+func accumulateClaudeModelUsage(target *claudeUsage, raw map[string]any) {
+	if val, ok := asInt(raw["inputTokens"]); ok {
+		target.inputTokens += val
+	}
+	if val, ok := asInt(raw["outputTokens"]); ok {
+		target.outputTokens += val
+	}
+	if val, ok := asInt(raw["cacheReadInputTokens"]); ok {
+		target.cacheReadTokens += val
+	}
+	if val, ok := asInt(raw["cacheCreationInputTokens"]); ok {
+		target.cacheWriteTokens += val
+	}
+	if val, ok := asInt(raw["cacheWriteInputTokens"]); ok {
+		target.cacheWriteTokens += val
+	}
+}
+
+func asFloat(val any) (float64, bool) {
+	switch v := val.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case json.Number:
+		if f, err := v.Float64(); err == nil {
+			return f, true
+		}
+	case string:
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f, true
+		}
+	}
+	return 0, false
+}
 
 func claudeVersion(ctx context.Context) (string, error) {
 	cmd := exec.CommandContext(ctx, "claude", "-v")

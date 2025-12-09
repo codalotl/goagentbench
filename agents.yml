@@ -7,6 +7,9 @@
 # be listed in llms.yml.
 #
 # Before you add an agent, you must add support for it (so we know how to run it).
+#
+# Agent notes:
+# - 2025/12/09: the `claude` agent uses multiple models under the hood. The "main" one is specified, but the explore agent uses haiku. Token usage for claude is just the main model, BUT cost is all models.
 agents:
   - name: codex
     version: 0.65.0

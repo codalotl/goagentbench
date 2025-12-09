@@ -288,6 +288,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		aggTokens.CachedInput += turnProgress.TokenUsage.CachedInput
 		aggTokens.WriteCachedInput += turnProgress.TokenUsage.WriteCachedInput
 		aggTokens.Output += turnProgress.TokenUsage.Output
+		aggTokens.Cost += turnProgress.TokenUsage.Cost
 		aggTokens.Total = aggTokens.Input + aggTokens.CachedInput + aggTokens.WriteCachedInput + aggTokens.Output
 		transcripts = append(transcripts, turnProgress.Transcripts...)
 		if turnProgress.Notes != "" {

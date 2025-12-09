@@ -5,10 +5,11 @@ type RunResults struct {
 	// Transcript is the full transcript
 	Transcript string
 
-	InputTokens            int // number of uncached input tokens. This is essentially context used
-	CachedInputTokens      int // number of cached input tokens. As a convo is renetered with tool call results, the old parts accumulate here.
-	WriteCachedInputTokens int // number of tokens spent writing content to the cache
-	OutputTokens           int // number of reasoning/output tokens
+	InputTokens            int     // number of uncached input tokens. This is essentially context used
+	CachedInputTokens      int     // number of cached input tokens. As a convo is renetered with tool call results, the old parts accumulate here.
+	WriteCachedInputTokens int     // number of tokens spent writing content to the cache
+	OutputTokens           int     // number of reasoning/output tokens
+	Cost                   float64 // total cost for the run (if available)
 
 	// If an agent supports it, this is the session ID (or resume ID). We can pass this ID to future Run calls to continue.
 	Session string

@@ -20,6 +20,12 @@ type codexAgent struct {
 	printer *output.Printer
 }
 
+const (
+	codexInputCostPerToken       = 1.25 / 1_000_000
+	codexCachedInputCostPerToken = 0.125 / 1_000_000
+	codexOutputCostPerToken      = 10.0 / 1_000_000
+)
+
 func newCodexAgent(ctx context.Context, printer *output.Printer) Agent {
 	return &codexAgent{
 		ctx:     ctx,
@@ -67,12 +73,18 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		outputBytes, err = cmd.CombinedOutput()
 	}
 	transcript, usage, threadID := parseCodexOutput(outputBytes)
+	nonCachedInputTokens := usage.inputTokens - usage.cachedTokens
+	if nonCachedInputTokens < 0 {
+		nonCachedInputTokens = 0
+	}
+	cost := calculateCodexCost(nonCachedInputTokens, usage.cachedTokens, usage.outputTokens)
 
 	result := RunResults{
 		Transcript:        transcript,
-		InputTokens:       usage.inputTokens,
+		InputTokens:       nonCachedInputTokens,
 		CachedInputTokens: usage.cachedTokens,
 		OutputTokens:      usage.outputTokens,
+		Cost:              cost,
 		Session:           session,
 	}
 	if session == "" && threadID != "" {
@@ -209,4 +221,10 @@ func parseCodexVersion(output string) string {
 		return fields[0]
 	}
 	return ""
+}
+
+func calculateCodexCost(nonCached, cached, output int) float64 {
+	return float64(nonCached)*codexInputCostPerToken +
+		float64(cached)*codexCachedInputCostPerToken +
+		float64(output)*codexOutputCostPerToken
 }
