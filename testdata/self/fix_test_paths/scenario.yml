@@ -1,0 +1,26 @@
+name: Fix verification to run relative test paths without ./ prefix
+repo: github.com/codalotl/goagentbench
+commit: 96ff68ec6f805a9e81f5b4832dc327f3140d3ca6
+
+classification:
+  type: fix-bug
+  has-spec: false
+  single-package: true
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    If a scenario.yml lists tests like by relative directory (ex: "internal/agent"), the test is run
+    like `go test internal/agent`, which fails. Detect this case and run the proper test. Tests that are
+    specified in Go-style package notation should continue to work as-is.
+
+verify:
+  copy:
+    - from: gab_test.go
+      to: internal/verify/gab
+  must-modify:
+    - internal/verify
+  tests:
+    - ./...

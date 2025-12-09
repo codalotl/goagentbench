@@ -23,10 +23,10 @@ import (
 
 // Execute runs the CLI.
 func Execute() error {
-	root := &cobra.Command{
+	root := silenceUsageAndErrors(&cobra.Command{
 		Use:   "goagentbench",
 		Short: "Benchmark AI coding agents on Go coding tasks.",
-	}
+	})
 	workspacePath := workspace.Path()
 
 	root.AddCommand(newValidateCmd())
@@ -34,11 +34,15 @@ func Execute() error {
 	root.AddCommand(newRunAgentCmd(workspacePath))
 	root.AddCommand(newExecCmd(workspacePath))
 	root.AddCommand(newVerifyCmd(workspacePath))
-	return root.Execute()
+	executed, err := root.ExecuteC()
+	if err != nil {
+		maybePrintUsage(executed, root, err)
+	}
+	return err
 }
 
 func newValidateCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "validate-scenario <scenario>",
 		Short: "Validate a scenario definition",
 		Args:  cobra.ExactArgs(1),
@@ -63,12 +67,12 @@ func newValidateCmd() *cobra.Command {
 			fmt.Println("valid")
 			return nil
 		},
-	}
+	})
 	return cmd
 }
 
 func newSetupCmd(workspacePath string) *cobra.Command {
-	cmd := &cobra.Command{
+	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "setup <scenario>",
 		Short: "Prepare the scenario workspace",
 		Args:  cobra.ExactArgs(1),
@@ -86,7 +90,7 @@ func newSetupCmd(workspacePath string) *cobra.Command {
 			printer := output.NewPrinter(os.Stdout)
 			return setup.Run(ctx, printer, scenarioName, workspacePath, sc)
 		},
-	}
+	})
 	return cmd
 }
 
@@ -94,7 +98,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 	var agentName string
 	var modelName string
 	var onlyStart bool
-	cmd := &cobra.Command{
+	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "run-agent --agent=<agent> [--model=<model>] <scenario>",
 		Short: "Run an agent on a prepared scenario",
 		Args:  cobra.ExactArgs(1),
@@ -127,7 +131,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 			}
 			return runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc, onlyStart)
 		},
-	}
+	})
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
 	cmd.Flags().StringVar(&modelName, "model", "", "model to use")
 	cmd.Flags().BoolVar(&onlyStart, "only-start", false, "only create .run-start.json without running agent")
@@ -137,7 +141,7 @@ func newRunAgentCmd(workspacePath string) *cobra.Command {
 func newExecCmd(workspacePath string) *cobra.Command {
 	var agentName string
 	var modelName string
-	cmd := &cobra.Command{
+	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "exec --agent=<agent> [--model=<model>] <scenario>",
 		Short: "Validate, set up, run, and verify a scenario",
 		Args:  cobra.ExactArgs(1),
@@ -190,7 +194,7 @@ func newExecCmd(workspacePath string) *cobra.Command {
 			}
 			return printer.App("Verification complete.")
 		},
-	}
+	})
 	cmd.Flags().StringVar(&agentName, "agent", "", "agent to run (required)")
 	cmd.Flags().StringVar(&modelName, "model", "", "model to use")
 	return cmd
@@ -376,7 +380,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 
 func newVerifyCmd(workspacePath string) *cobra.Command {
 	var onlyReport bool
-	cmd := &cobra.Command{
+	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "verify <scenario>",
 		Short: "Verify an agent run for a scenario",
 		Args:  cobra.ExactArgs(1),
@@ -403,9 +407,65 @@ func newVerifyCmd(workspacePath string) *cobra.Command {
 			_, err = verify.Run(ctx, opts, sc)
 			return err
 		},
-	}
+	})
 	cmd.Flags().BoolVar(&onlyReport, "only-report", false, "print report without writing results file")
 	return cmd
+}
+
+func silenceUsageAndErrors(cmd *cobra.Command) *cobra.Command {
+	silenceErrors(cmd)
+	cmd.SilenceUsage = true
+	return cmd
+}
+
+func silenceErrors(cmd *cobra.Command) *cobra.Command {
+	cmd.SilenceErrors = true
+	return cmd
+}
+
+func maybePrintUsage(cmd, root *cobra.Command, err error) {
+	if err == nil {
+		return
+	}
+	target := cmd
+	if target == nil {
+		target = root
+	}
+	if target == nil {
+		return
+	}
+	if shouldShowUsage(err) {
+		_ = target.Usage()
+	}
+}
+
+func shouldShowUsage(err error) bool {
+	msg := strings.ToLower(err.Error())
+	if strings.HasPrefix(msg, "unknown command") {
+		return true
+	}
+	if strings.HasPrefix(msg, "unknown flag") || strings.HasPrefix(msg, "unknown shorthand flag") {
+		return true
+	}
+	if strings.Contains(msg, "accepts") && strings.Contains(msg, "arg") {
+		return true
+	}
+	if strings.Contains(msg, "requires at least") && strings.Contains(msg, "arg") {
+		return true
+	}
+	if strings.Contains(msg, "requires at most") && strings.Contains(msg, "arg") {
+		return true
+	}
+	if strings.Contains(msg, "required flag") {
+		return true
+	}
+	if strings.Contains(msg, "flag needs an argument") {
+		return true
+	}
+	if strings.HasPrefix(msg, "invalid argument") {
+		return true
+	}
+	return false
 }
 
 func writeJSON(path string, v any) error {

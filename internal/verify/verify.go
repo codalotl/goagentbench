@@ -356,7 +356,7 @@ func runPartial(ctx context.Context, workdir string, entries scenario.StringList
 }
 
 func runGoTest(ctx context.Context, workdir, entry string, forceJSON bool, printer *output.Printer) (types.TestResult, error) {
-	args, err := parseTestArgs(entry)
+	args, err := parseTestArgs(workdir, entry)
 	if err != nil {
 		return types.TestResult{Name: entry, Passed: false, Error: err.Error()}, nil
 	}
@@ -397,7 +397,12 @@ func runGoTestJSON(ctx context.Context, workdir, entry string, printer *output.P
 	return res, passed, total, nil
 }
 
-func parseTestArgs(entry string) ([]string, error) {
+func pathExists(p string) bool {
+	_, err := os.Stat(p)
+	return err == nil
+}
+
+func parseTestArgs(workdir, entry string) ([]string, error) {
 	trimmed := strings.TrimSpace(entry)
 	if trimmed == "" {
 		return nil, fmt.Errorf("empty test entry")
@@ -412,7 +417,29 @@ func parseTestArgs(entry string) ([]string, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("no args parsed from %q", entry)
 	}
+	args[0] = normalizeTestTargetArg(args[0], workdir)
 	return args, nil
+}
+
+func normalizeTestTargetArg(target, workdir string) string {
+	if target == "" || strings.HasPrefix(target, "./") || strings.HasPrefix(target, "../") || filepath.IsAbs(target) {
+		return target
+	}
+
+	base := target
+	if strings.HasSuffix(base, "/...") {
+		base = strings.TrimSuffix(base, "/...")
+	}
+	if idx := strings.IndexAny(base, "*?["); idx >= 0 {
+		base = filepath.Dir(base)
+	}
+	if base == "" {
+		return target
+	}
+	if pathExists(filepath.Join(workdir, base)) {
+		return "./" + target
+	}
+	return target
 }
 
 type goTestEvent struct {
