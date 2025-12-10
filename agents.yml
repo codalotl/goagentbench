@@ -33,7 +33,7 @@ agents:
       - claude-sonnet-4.5-thinking
       - claude-opus-4.5-thinking
   - name: claude
-    version: 2.0.62
+    version: 2.0.64
     supports-llms:
       - claude-opus-4.5-thinking
       - claude-sonnet-4.5-thinking

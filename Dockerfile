@@ -24,7 +24,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 #
-# Arch:
+# Arch (will be "amd64" or "arm64"):
 #
 ARG TARGETARCH
 
@@ -54,6 +54,40 @@ RUN case "${TARGETARCH}" in \
  && mv "/usr/local/bin/codex-${CODEX_ARCH}" /usr/local/bin/codex \
  && rm "/tmp/${CODEX_TGZ}" \
  && codex --version
+
+#
+# Claude Code:
+#
+ARG CLAUDE_CODE_VERSION=2.0.64
+RUN CLAUDE_URL="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/${CLAUDE_CODE_VERSION}/linux-${TARGETARCH}/claude" \
+ && curl -fsSL "${CLAUDE_URL}" -o /usr/local/bin/claude \
+ && chmod +x /usr/local/bin/claude \
+ && claude --version
+ENV DISABLE_AUTOUPDATER=1
+
+#
+# Cursor Agent:
+#
+ARG CURSOR_AGENT_VERSION=2025.11.25-d5b3271
+RUN set -eux \
+ && case "${TARGETARCH}" in \
+      amd64) CURSOR_ARCH="x64" ;; \
+      arm64) CURSOR_ARCH="arm64" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+ && CURSOR_VERSIONS_DIR="/usr/local/share/cursor-agent/versions" \
+ && mkdir -p "${CURSOR_VERSIONS_DIR}" \
+ && CURSOR_TEMP_DIR="$(mktemp -d "${CURSOR_VERSIONS_DIR}/.tmp-${CURSOR_AGENT_VERSION}-XXXXXX")" \
+ && CURSOR_URL="https://downloads.cursor.com/lab/${CURSOR_AGENT_VERSION}/linux/${CURSOR_ARCH}/agent-cli-package.tar.gz" \
+ && curl -fSL "${CURSOR_URL}" \
+    | tar --strip-components=1 -xzf - -C "${CURSOR_TEMP_DIR}" \
+ && CURSOR_FINAL_DIR="${CURSOR_VERSIONS_DIR}/${CURSOR_AGENT_VERSION}" \
+ && rm -rf "${CURSOR_FINAL_DIR}" \
+ && mv "${CURSOR_TEMP_DIR}" "${CURSOR_FINAL_DIR}" \
+ && ln -sf "${CURSOR_FINAL_DIR}/cursor-agent" /usr/local/bin/cursor-agent \
+ && chmod -R a+rX "${CURSOR_FINAL_DIR}" \
+ && chmod +x "${CURSOR_FINAL_DIR}/cursor-agent" \
+ && cursor-agent --help >/dev/null
 
 #
 # User / Working Directory

@@ -11,7 +11,7 @@ if [[ -z "${GOAGENTBENCH_SKIP_BUILD:-}" ]]; then
 fi
 
 # Pass selected environment variables through to the container. Extend VARS_TO_PASS to add more.
-VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY)
+VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY)
 ENV_ARGS=()
 for var in "${VARS_TO_PASS[@]}"; do
   if [[ -n "${!var:-}" ]]; then
@@ -25,6 +25,9 @@ MOUNT_ARGS=("-v" "${SCRIPT_DIR}:/host")
 if [[ -n "${GOAGENTBENCH_CODEX_MOUNT_AUTH:-}" && -f "${HOST_CODEX_AUTH}" ]]; then
   MOUNT_ARGS+=("-v" "${HOST_CODEX_AUTH}:/home/runner/.codex/auth.json:rw")
 fi
+
+# NOTE: claude code works with claude -p if the ANTHROPIC_API_KEY is set, but tries to do onboarding if running in TUI mode.
+# We could potentially fix with https://ainativedev.io/news/configuring-claude-code (writes small .claude.json file which marks onboarding as complete)
 
 # Sync the repo into /workspace without .git or .envrc, optionally mount codex auth, then drop into a shell.
 docker run --rm -it \

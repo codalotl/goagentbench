@@ -21,6 +21,12 @@ import (
 	"github.com/codalotl/goagentbench/internal/workspace"
 )
 
+// These function variables allow tests to stub external dependencies.
+var (
+	agentRunner  = agents.Run
+	verifyRunner = verify.Run
+)
+
 // Execute runs the CLI.
 func Execute() error {
 	root := silenceUsageAndErrors(&cobra.Command{
@@ -184,7 +190,7 @@ func newExecCmd(workspacePath string) *cobra.Command {
 			if err := runAgent(ctx, printer, workspacePath, scenarioName, agentDef, modelName, llmDef, sc, false); err != nil {
 				return err
 			}
-			if _, err := verify.Run(ctx, verify.Options{
+			if _, err := verifyRunner(ctx, verify.Options{
 				ScenarioName:  scenarioName,
 				WorkspacePath: workspacePath,
 				RootPath:      rootDir,
@@ -264,7 +270,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		if err := printer.Appf("Running agent %s (model=%s) turn %d", agentDef.Name, modelName, turn); err != nil {
 			return err
 		}
-		outcome, err := agents.Run(ctx, agents.RunContext{
+		outcome, runErr := agentRunner(ctx, agents.RunContext{
 			ScenarioName: scenarioName,
 			ScenarioPath: workspaceDir,
 			ModelName:    modelName,
@@ -274,8 +280,8 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 			Session:      session,
 			Printer:      printer,
 		})
-		if err != nil {
-			_ = printer.Appf("Agent run error: %v", err)
+		if runErr != nil {
+			_ = printer.Appf("Agent run error: %v", runErr)
 		}
 		if outcome == nil || outcome.Progress == nil {
 			return fmt.Errorf("agent runner returned no progress")
@@ -324,6 +330,9 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		if err := writeJSON(runProgressPath, progress); err != nil {
 			return err
 		}
+		if runErr != nil {
+			return fmt.Errorf("agent run failed: %w", runErr)
+		}
 		if outcome.Manual {
 			if err := printer.App("Manual agent; progress file recorded. Please run the agent manually if needed."); err != nil {
 				return err
@@ -334,7 +343,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 			break
 		}
 
-		verRes, err := verify.Run(ctx, verify.Options{
+		verRes, err := verifyRunner(ctx, verify.Options{
 			ScenarioName:  scenarioName,
 			WorkspacePath: workspacePath,
 			RootPath:      rootDir,

@@ -79,6 +79,15 @@ If the `--only-report` option is used, it only prints out the summary report, an
 
 Calling `verify` with or without the `--only-report` flag should be idempotent.
 
+## exec
+
+`goagentbench exec --agent=codex [--model=gpt-5.1-codex-max-medium] tui_build`:
+- Runs `validate-scenario`
+- Runs `setup`
+- Runs `run-agent`
+- Runs `verify`
+- If any steps fail, we abort the pipeline (ex: validate scenario found issue; setup cannot clone repo; agent exits with status 1).
+
 ## scenario.yml
 
 Below is an example yml file with field descriptions, semantic meaning, and rules.
@@ -210,17 +219,13 @@ Supported agents and their LLMs must be listed in these yml files. For each agen
 
 Some agents may be "manual" -- their harness will just indicate that a human should go run the agent. These manually run agents should still be listed in agents.yml and llms.yml.
 
-## V0.1 implementation
+## Docker and containers
 
-These notes will descibe the first version we implement. This section will eventually be deleted.
+Docker/containerization is mostly orthogonal. This softare will run on any computer.
 
-- The first version is a basic solid version, without frills or fancy features. For instance:
-    - No work trees. No git repo caching. No concurrency.
-    - Use judgement to match other questions against "what would a basic solid version do?"
-- No docker containers. Just run agents locally. Ex: if `codex` is an agent, just literally run the `codex` binary.
-- main.go should be nearly empty. It should call into a package in `internal`. Many packages can exist in `internal`.
-- You may install some go packages. For instance, you may use `cobra` for command line parsing. Be somewhat judicious in adding go packages. Steer clear of packages that have too many dependencies.
-- Use testify for tests.
-- Implement exactly two agents:
-    - `codex` (you are codex! that's exciting)
-    - `codalotl`. This will be manual mode. The harness should just indicate that the human should run it.
+Its recommended to run in a container. Run ./docker_dev.sh to be dropped in a shell in a container. From there, run the commands. Details:
+- Relevant keys (ex: OPENAI_API_KEY will be copied to docker environment).
+- If `GOAGENTBENCH_CODEX_MOUNT_AUTH` is set, we'll mount ~/.codex/auth.json to the container so it can use those credentials.
+- Results from inside the container will be written to `./results` in your host computer (via mount).
+
+The only non-orthogonal piece: agent versions in agents.yml must manually be kept up to date with installed agents in `Dockerfile`.
