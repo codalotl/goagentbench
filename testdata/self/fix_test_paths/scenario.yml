@@ -1,6 +1,6 @@
 name: Fix verification to run relative test paths without ./ prefix
 repo: github.com/codalotl/goagentbench
-commit: 96ff68ec6f805a9e81f5b4832dc327f3140d3ca6
+commit: 9dd315e48d99905a6cf8d44419615f5896829545
 
 classification:
   type: fix-bug

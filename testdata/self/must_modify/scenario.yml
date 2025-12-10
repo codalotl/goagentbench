@@ -1,6 +1,6 @@
 name: Rename only-modify -> must-modify + impl
 repo: github.com/codalotl/goagentbench
-commit: 4bb63717b61f77342c2b6e67eb597a2f4a5c53d1
+commit: 1ec2e9d63f208e4e9bf0966f0450043f060eda1b
 
 classification:
   type: feature

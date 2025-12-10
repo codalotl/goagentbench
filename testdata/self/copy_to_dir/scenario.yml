@@ -1,6 +1,6 @@
 name: Update Copy to CopyToDir and update callsites
 repo: github.com/codalotl/goagentbench
-commit: 8a6053522862ea98d6a8465cf2c4c5602e4391a3
+commit: 51a87260cb8594356d8bf6c9a3ca03047b148f59
 
 classification:
   type: fix-bug

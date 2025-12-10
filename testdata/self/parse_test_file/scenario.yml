@@ -1,6 +1,6 @@
 name: Update parsing of test file strings in YML file
 repo: github.com/codalotl/goagentbench
-commit: aefb88dbb06595bbb763a885413cfc3fa93f234c
+commit: d549b16b89a12b9608f8594022b684cb98834e7b
 
 classification:
   type: feature
