@@ -35,6 +35,8 @@ type Result struct {
 	Report *types.VerificationReport
 }
 
+const resultsEnvVar = "GOAGENTBENCH_RESULTS"
+
 // Run executes verification: optional copies, go test runs, and writes report.
 func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, error) {
 	printer := opts.Printer
@@ -567,7 +569,7 @@ func writeReport(opts Options, report *types.VerificationReport) error {
 		safePart(cleanReport.RunID, "run"),
 		safePart(cleanReport.Agent, "agent"),
 		safePart(cleanReport.Model, "model"))
-	outDir := filepath.Join(opts.RootPath, "results", opts.ScenarioName)
+	outDir := filepath.Join(resultsDir(opts.RootPath), opts.ScenarioName)
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return err
 	}
@@ -586,6 +588,16 @@ func safePart(value, fallback string) string {
 	}
 	val = strings.ReplaceAll(val, string(os.PathSeparator), "_")
 	return val
+}
+
+func resultsDir(rootPath string) string {
+	if env := strings.TrimSpace(os.Getenv(resultsEnvVar)); env != "" {
+		if filepath.IsAbs(env) {
+			return filepath.Clean(env)
+		}
+		return filepath.Join(rootPath, filepath.Clean(env))
+	}
+	return filepath.Join(rootPath, "results")
 }
 
 func allPassed(results []types.TestResult) bool {

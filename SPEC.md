@@ -14,6 +14,8 @@ In the examples below, I am using `tui_build` as an example scenario. It can be 
 
 Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` applying setup steps there, and then letting the agent run there.
 
+Results are written to `./results` (see ## verify below) by default. This directory can be overriden by the env var `$GOAGENTBENCH_RESULTS`.
+
 ## Output
 
 Since this is a CLI app, we output to a terminal. But this CLI app is an **orchestrator** -- it often execs other commands, and those commands also have output. As such, it can be difficult to determine which output came from where.

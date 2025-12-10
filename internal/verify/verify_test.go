@@ -14,6 +14,7 @@ import (
 )
 
 func TestWriteReportOmitsTranscripts(t *testing.T) {
+	t.Setenv(resultsEnvVar, "")
 	tmp := t.TempDir()
 	progress := &types.RunProgress{
 		Scenario:        "tui_build",
@@ -59,4 +60,30 @@ func TestWriteReportOmitsTranscripts(t *testing.T) {
 		assert.Empty(t, written.Progress.Transcripts)
 	}
 	require.Len(t, report.Progress.Transcripts, 1)
+}
+
+func TestWriteReportRespectsResultsEnv(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv(resultsEnvVar, "custom-results")
+
+	report := &types.VerificationReport{
+		RunID:        "run_env",
+		Scenario:     "tui_build",
+		Agent:        "codex",
+		AgentVersion: "v1",
+		Model:        "gpt-4",
+		VerifiedAt:   time.Date(2024, time.February, 3, 4, 5, 6, 0, time.UTC),
+		Success:      true,
+	}
+
+	err := writeReport(Options{ScenarioName: "tui_build", RootPath: tmp}, report)
+	require.NoError(t, err)
+
+	files, err := filepath.Glob(filepath.Join(tmp, "custom-results", "tui_build", "*.verify.json"))
+	require.NoError(t, err)
+	require.Len(t, files, 1)
+
+	_, err = os.Stat(filepath.Join(tmp, "results"))
+	require.Error(t, err)
+	require.True(t, os.IsNotExist(err))
 }
