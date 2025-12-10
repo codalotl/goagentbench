@@ -542,18 +542,37 @@ func readRunProgress(path string) (*types.RunProgress, error) {
 	return &rp, nil
 }
 
+func progressWithoutTranscripts(progress *types.RunProgress) *types.RunProgress {
+	if progress == nil {
+		return nil
+	}
+	clone := *progress
+	clone.Transcripts = nil
+	return &clone
+}
+
+func reportWithoutTranscripts(report *types.VerificationReport) *types.VerificationReport {
+	if report == nil {
+		return nil
+	}
+	clone := *report
+	clone.Progress = progressWithoutTranscripts(report.Progress)
+	return &clone
+}
+
 func writeReport(opts Options, report *types.VerificationReport) error {
+	cleanReport := reportWithoutTranscripts(report)
 	filename := fmt.Sprintf("%s-%s-%s-%s.verify.json",
-		report.VerifiedAt.Format("2006-01-02"),
-		safePart(report.RunID, "run"),
-		safePart(report.Agent, "agent"),
-		safePart(report.Model, "model"))
+		cleanReport.VerifiedAt.Format("2006-01-02"),
+		safePart(cleanReport.RunID, "run"),
+		safePart(cleanReport.Agent, "agent"),
+		safePart(cleanReport.Model, "model"))
 	outDir := filepath.Join(opts.RootPath, "results", opts.ScenarioName)
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return err
 	}
 	outPath := filepath.Join(outDir, filename)
-	data, err := json.MarshalIndent(report, "", "  ")
+	data, err := json.MarshalIndent(cleanReport, "", "  ")
 	if err != nil {
 		return err
 	}
