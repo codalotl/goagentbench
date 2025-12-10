@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1765316829",
+  "scenario": "self/parse_test_file",
+  "agent": "claude",
+  "agent_version": "2.0.62",
+  "model": "claude-sonnet-4.5-thinking",
+  "started_at": "2025-12-09T13:47:09.497354-08:00",
+  "progress": {
+    "run_id": "run_1765316829",
+    "scenario": "self/parse_test_file",
+    "agent": "claude",
+    "agent_version": "2.0.62",
+    "model": "claude-sonnet-4.5-thinking",
+    "started_at": "2025-12-09T13:47:09.497354-08:00",
+    "updated_at": "2025-12-09T13:49:12.568028-08:00",
+    "session": "435ba8a3-7d27-4cef-a781-dd35639a4b8b",
+    "ended_at": "2025-12-09T13:49:12.568024-08:00",
+    "duration_seconds": 123.070585958,
+    "token_usage": {
+      "input": 1067,
+      "cached_input": 395456,
+      "write_cached_input": 17357,
+      "output": 10235,
+      "total": 424115,
+      "cost": 0.34458354999999996
+    }
+  },
+  "verified_at": "2025-12-09T13:49:13.586605-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/absolute_path (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/absolute_path\n    --- FAIL: TestGABScenarioTestTargets_Invalid/double_dash_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/double_dash_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/multiple_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/multiple_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/package_ellipsis_with_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/package_ellipsis_with_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\n    --- FAIL: TestGABScenarioTestTargets_Invalid/target_starts_with_dash (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/target_starts_with_dash\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.178s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

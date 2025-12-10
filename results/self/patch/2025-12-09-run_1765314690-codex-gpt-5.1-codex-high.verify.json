@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765314690",
+  "scenario": "self/patch",
+  "agent": "codex",
+  "agent_version": "0.65.0",
+  "model": "gpt-5.1-codex-high",
+  "started_at": "2025-12-09T13:11:30.582461-08:00",
+  "progress": {
+    "run_id": "run_1765314690",
+    "scenario": "self/patch",
+    "agent": "codex",
+    "agent_version": "0.65.0",
+    "model": "gpt-5.1-codex-high",
+    "started_at": "2025-12-09T13:11:30.582461-08:00",
+    "updated_at": "2025-12-09T13:16:31.523205-08:00",
+    "session": "019b04f4-7e2e-7e81-804b-2741120aa56c",
+    "ended_at": "2025-12-09T13:16:31.523203-08:00",
+    "duration_seconds": 300.940971083,
+    "token_usage": {
+      "input": 416112,
+      "cached_input": 2370944,
+      "output": 13129,
+      "total": 2800185,
+      "cost": 0.947798
+    }
+  },
+  "verified_at": "2025-12-09T13:16:33.188084-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "ok  \tgithub.com/codalotl/goagentbench\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n--- FAIL: TestRun_GABAppliesPatches (0.57s)\n    --- FAIL: TestRun_GABAppliesPatches/single_patch (0.14s)\n        gab_test.go:180: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/patch/internal/setup/gab_test.go:180\n            \tError:      \tReceived unexpected error:\n            \t            \tgit apply single.patch failed: exit status 128\n            \tTest:       \tTestRun_GABAppliesPatches/single_patch\n    --- FAIL: TestRun_GABAppliesPatches/multiple_patches (0.14s)\n        gab_test.go:180: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/patch/internal/setup/gab_test.go:180\n            \tError:      \tReceived unexpected error:\n            \t            \tgit apply single.patch failed: exit status 128\n            \tTest:       \tTestRun_GABAppliesPatches/multiple_patches\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/setup\t0.857s\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t0.936s\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765303868",
+  "scenario": "codalotl/tui_build",
+  "agent": "cursor-agent",
+  "agent_version": "2025.11.25-d5b3271",
+  "model": "composer-1",
+  "started_at": "2025-12-09T10:11:08.573896-08:00",
+  "progress": {
+    "run_id": "run_1765303868",
+    "scenario": "codalotl/tui_build",
+    "agent": "cursor-agent",
+    "agent_version": "2025.11.25-d5b3271",
+    "model": "composer-1",
+    "started_at": "2025-12-09T10:11:08.573896-08:00",
+    "updated_at": "2025-12-09T10:14:28.685697-08:00",
+    "session": "4efab060-1af5-4707-ba05-d515806dae04",
+    "ended_at": "2025-12-09T10:14:28.685681-08:00",
+    "duration_seconds": 200.112145042,
+    "token_usage": {
+      "input": 56312,
+      "cached_input": 2346208,
+      "output": 37096,
+      "total": 2439616,
+      "cost": 0.734626
+    }
+  },
+  "verified_at": "2025-12-09T10:14:31.97789-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./internal/q/tui",
+      "passed": false,
+      "output": "--- FAIL: TestKeyboardInput (0.60s)\n    golden_key_test.go:125: \n        \tError Trace:\t/Users/jonathannovak/gab_workspace/codalotl/tui_build/internal/q/tui/golden_key_test.go:125\n        \tError:      \t\"[{-1 [97] false false} {-1 [98] false false} {-1 [99] false false} {-1 [88] false false} {-1 [89] false false} {-1 [90] false false} {-1 [46] false false} {-1 [91] false false} {0 [] false false} {1 [] false false} {2 [] false false} {3 [] false false} {4 [] false false} {7 [] false false} {8 [] false false} {9 [] false false} {10 [] false false} {13 [] false false} {-1 [127] true false} {-1 [955] false false} {-1 [233] false false} {-1 [20320] false false} {-1 [128578] false false} {-1 [97] true false} {-1 [90] true false} {-1 [98] true false} {-1 [102] true false} {295 [] false false} {296 [] false false} {297 [] false false} {298 [] false false} {300 [] false false} {300 [] false false} {300 [] false false} {324 [] false false} {324 [] false false} {324 [] false false} {324 [] false false} {324 [] false false} {324 [] false false} {324 [] false false} {301 [] false false} {302 [] false false} {303 [] false false} {307 [] false false} {306 [] false false} {326 [] false false} {326 [] false false} {326 [] false false} {295 [] false false} {296 [] false false} {297 [] false false} {298 [] false false}]\" should have 54 item(s), but has 53\n        \tTest:       \tTestKeyboardInput\npanic: integration test panic sentinel\npanic: integration test view panic sentinel\npanic: integration test view panic sentinel\npanic: integration test go panic sentinel\npanic: integration test go panic sentinel\nFAIL\nFAIL\tgithub.com/codalotl/codalotl/internal/q/tui\t2.576s\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

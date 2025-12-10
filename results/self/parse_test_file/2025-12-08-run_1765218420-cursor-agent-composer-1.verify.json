@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765218420",
+  "scenario": "self/parse_test_file",
+  "agent": "cursor-agent",
+  "agent_version": "2025.11.25-d5b3271",
+  "model": "composer-1",
+  "started_at": "2025-12-08T10:27:00.745643-08:00",
+  "progress": {
+    "run_id": "run_1765218420",
+    "scenario": "self/parse_test_file",
+    "agent": "cursor-agent",
+    "agent_version": "2025.11.25-d5b3271",
+    "model": "composer-1",
+    "started_at": "2025-12-08T10:27:00.745643-08:00",
+    "updated_at": "2025-12-08T10:27:35.995181-08:00",
+    "session": "313118da-2e2b-4db7-b2c4-915336be00f5",
+    "ended_at": "2025-12-08T10:27:35.995129-08:00",
+    "duration_seconds": 35.249449166,
+    "token_usage": {
+      "input": 19478,
+      "cached_input": 256128,
+      "output": 7622,
+      "total": 283228,
+      "cost": 0.1325835
+    }
+  },
+  "verified_at": "2025-12-08T10:27:37.109926-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/absolute_path (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/absolute_path\n    --- FAIL: TestGABScenarioTestTargets_Invalid/package_ellipsis_with_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/package_ellipsis_with_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\n    --- FAIL: TestGABScenarioTestTargets_Invalid/target_starts_with_dash (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/Users/jonathannovak/gab_workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/target_starts_with_dash\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.314s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

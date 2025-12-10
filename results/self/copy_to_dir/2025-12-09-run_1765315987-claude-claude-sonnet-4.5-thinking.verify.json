@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1765315987",
+  "scenario": "self/copy_to_dir",
+  "agent": "claude",
+  "agent_version": "2.0.62",
+  "model": "claude-sonnet-4.5-thinking",
+  "started_at": "2025-12-09T13:33:07.643446-08:00",
+  "progress": {
+    "run_id": "run_1765315987",
+    "scenario": "self/copy_to_dir",
+    "agent": "claude",
+    "agent_version": "2.0.62",
+    "model": "claude-sonnet-4.5-thinking",
+    "started_at": "2025-12-09T13:33:07.643446-08:00",
+    "updated_at": "2025-12-09T13:35:38.084665-08:00",
+    "session": "bb92db54-f71c-449d-b360-a629db9c91e4",
+    "ended_at": "2025-12-09T13:35:38.084663-08:00",
+    "duration_seconds": 150.450773666,
+    "token_usage": {
+      "input": 1087,
+      "cached_input": 551153,
+      "write_cached_input": 36670,
+      "output": 8617,
+      "total": 597527,
+      "cost": 0.4414244
+    }
+  },
+  "verified_at": "2025-12-09T13:35:39.090161-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n--- FAIL: TestCopyToDirCreatesMissingDestination (0.00s)\n    gab_copy_test.go:62: destination dir still exists after undo; err=\u003cnil\u003e\n--- FAIL: TestCopyToDirCopiesDirectory (0.00s)\n    gab_copy_test.go:93: copied directory still exists after undo; err=\u003cnil\u003e\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/fsutil\t0.217s\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

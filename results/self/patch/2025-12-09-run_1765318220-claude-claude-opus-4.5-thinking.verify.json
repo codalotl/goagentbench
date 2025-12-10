@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1765318220",
+  "scenario": "self/patch",
+  "agent": "claude",
+  "agent_version": "2.0.62",
+  "model": "claude-opus-4.5-thinking",
+  "started_at": "2025-12-09T14:10:20.49625-08:00",
+  "progress": {
+    "run_id": "run_1765318220",
+    "scenario": "self/patch",
+    "agent": "claude",
+    "agent_version": "2.0.62",
+    "model": "claude-opus-4.5-thinking",
+    "started_at": "2025-12-09T14:10:20.49625-08:00",
+    "updated_at": "2025-12-09T14:17:08.560532-08:00",
+    "session": "e895dd04-96a0-45ca-b5ed-2eb26b2ce62b",
+    "ended_at": "2025-12-09T14:17:08.560527-08:00",
+    "duration_seconds": 408.060964667,
+    "token_usage": {
+      "input": 56,
+      "cached_input": 2629070,
+      "write_cached_input": 75884,
+      "output": 19014,
+      "total": 2724024,
+      "cost": 2.4282559500000005
+    }
+  },
+  "verified_at": "2025-12-09T14:17:09.171916-08:00",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "# github.com/codalotl/goagentbench/internal/setup_test [github.com/codalotl/goagentbench/internal/setup.test]\ninternal/setup/gab_test.go:175:64: not enough arguments in call to setup.Run\n\thave (context.Context, *output.Printer, string, string, *scenario.Scenario)\n\twant (context.Context, *output.Printer, string, string, string, *scenario.Scenario)\nok  \tgithub.com/codalotl/goagentbench\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\nFAIL\tgithub.com/codalotl/goagentbench/internal/setup [build failed]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}
