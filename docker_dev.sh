@@ -11,7 +11,7 @@ if [[ -z "${GOAGENTBENCH_SKIP_BUILD:-}" ]]; then
 fi
 
 # Pass selected environment variables through to the container. Extend VARS_TO_PASS to add more.
-VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY)
+VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY XAI_API_KEY)
 ENV_ARGS=()
 for var in "${VARS_TO_PASS[@]}"; do
   if [[ -n "${!var:-}" ]]; then
