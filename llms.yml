@@ -43,7 +43,7 @@ llms:
     model: composer-1
 
   #
-  # Cursor Models
+  # Google Models
   #
   - name: gemini-3-pro
     model: gemini-3-pro
