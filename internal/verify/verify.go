@@ -628,19 +628,30 @@ func SummaryString(report *types.VerificationReport) string {
 	}
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("Verification for %s (agent=%s model=%s)\n", report.Scenario, report.Agent, report.Model))
-	for _, t := range report.Tests {
+	appendTest := func(prefix string, t types.TestResult) {
 		status := "FAIL"
 		if t.Passed {
 			status = "PASS"
 		}
-		builder.WriteString(fmt.Sprintf("- %s: %s\n", t.Name, status))
+		builder.WriteString(fmt.Sprintf("- %s%s: %s\n", prefix, t.Name, status))
+		if t.Passed {
+			return
+		}
+		if errText := strings.TrimSpace(t.Error); errText != "" {
+			for _, line := range strings.Split(errText, "\n") {
+				line = strings.TrimSpace(line)
+				if line == "" {
+					continue
+				}
+				builder.WriteString("  " + line + "\n")
+			}
+		}
+	}
+	for _, t := range report.Tests {
+		appendTest("", t)
 	}
 	for _, t := range report.PartialTests {
-		status := "FAIL"
-		if t.Passed {
-			status = "PASS"
-		}
-		builder.WriteString(fmt.Sprintf("- partial %s: %s\n", t.Name, status))
+		appendTest("partial ", t)
 	}
 	if report.PartialScore != nil && *report.PartialScore < 1 {
 		builder.WriteString(fmt.Sprintf("Partial success: %.2f\n", *report.PartialScore))
