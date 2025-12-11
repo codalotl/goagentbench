@@ -37,4 +37,7 @@ agents:
     supports-llms:
       - claude-opus-4.5-thinking
       - claude-sonnet-4.5-thinking
-
+  - name: aider
+    version: 0.86.1
+    supports-llms:
+      - gpt-5.1-codex-high

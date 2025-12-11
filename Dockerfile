@@ -18,6 +18,9 @@ RUN apt-get update \
     less \
     openssh-client \
     procps \
+    python3 \
+    python3-venv \
+    python3-pip \
     sudo \
     tzdata \
     vim-tiny \
@@ -88,6 +91,20 @@ RUN set -eux \
  && chmod -R a+rX "${CURSOR_FINAL_DIR}" \
  && chmod +x "${CURSOR_FINAL_DIR}/cursor-agent" \
  && cursor-agent --help >/dev/null
+
+#
+# Aider:
+#
+ARG AIDER_VERSION=0.86.1
+ARG PIPX_VERSION=1.7.1
+ENV PIPX_BIN_DIR=/usr/local/bin
+ENV PIPX_HOME=/opt/pipx
+ENV AIDER_CHECK_UPDATE=false
+RUN set -eux \
+ && mkdir -p "${PIPX_HOME}" \
+ && python3 -m pip install --no-cache-dir --break-system-packages "pipx==${PIPX_VERSION}" \
+ && pipx install "aider-chat==${AIDER_VERSION}" \
+ && aider --version
 
 #
 # User / Working Directory
