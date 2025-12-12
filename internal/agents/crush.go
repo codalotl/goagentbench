@@ -101,12 +101,17 @@ func (c *crushAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 
 type crushConfig struct {
 	Models map[string]crushModelConfig `json:"models"`
+	LSP    map[string]crushLSPConfig   `json:"lsp"`
 }
 
 type crushModelConfig struct {
 	Provider        string `json:"provider"`
 	Model           string `json:"model"`
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+}
+
+type crushLSPConfig struct {
+	Command string `json:"command"`
 }
 
 func crushReasoningEffortForLLM(llm LLMDefinition) string {
@@ -144,6 +149,11 @@ func writeCrushConfig(cwd, provider, model, reasoning string) error {
 				Provider:        provider,
 				Model:           model,
 				ReasoningEffort: reasoning,
+			},
+		},
+		LSP: map[string]crushLSPConfig{
+			"go": {
+				Command: "gopls",
 			},
 		},
 	}

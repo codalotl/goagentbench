@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -75,6 +76,20 @@ func TestWriteCrushConfigOmitsReasoningEffortWhenEmpty(t *testing.T) {
 	b, err := os.ReadFile(filepath.Join(dir, ".crush.json"))
 	require.NoError(t, err)
 	require.NotContains(t, string(b), "reasoning_effort")
+}
+
+func TestWriteCrushConfigSetsGoLSP(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, writeCrushConfig(dir, "xai", "grok-4", "high"))
+
+	b, err := os.ReadFile(filepath.Join(dir, ".crush.json"))
+	require.NoError(t, err)
+
+	var cfg crushConfig
+	require.NoError(t, json.Unmarshal(b, &cfg))
+	require.NotNil(t, cfg.LSP)
+	require.Contains(t, cfg.LSP, "go")
+	require.Equal(t, "gopls", cfg.LSP["go"].Command)
 }
 
 func findRepoRoot(t *testing.T) string {
