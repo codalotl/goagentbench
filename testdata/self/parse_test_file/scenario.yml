@@ -20,7 +20,7 @@ agent:
     # - a relative file (of a _test.go file).
     # - a glob of test files (ex: internal/q/tui/golden*_test.go)
     # - a Go-style package pattern (ex: ./...; ./foo; ./bar/...)
-    # - If the element resolves such that there's only one target Go package, you may use -run to indicate specific tests are run. (-run must come last; only one; not --run)
+    # - If the test is just one target Go package, you may use -run to indicate specific tests are run. (-run must come last; only one; not --run)
     tests:
       - some/pkg
       - ./other/...
@@ -40,7 +40,7 @@ agent:
 
     type TestTarget struct {
       Target string
-      Run    string // should just contain the pattern, not "-run". "" if no -run target.
+      Run    string // should just contain the unquoted pattern; does not include "-run". "" if no -run target.
     }
 
 verify:
