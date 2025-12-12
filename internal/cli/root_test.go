@@ -40,12 +40,17 @@ func TestRunAgentFailsWithoutRunningVerify(t *testing.T) {
 	start := time.Now()
 
 	origAgentRunner := agentRunner
+	origAgentVersionChecker := agentVersionChecker
 	origVerifyRunner := verifyRunner
 	t.Cleanup(func() {
 		agentRunner = origAgentRunner
+		agentVersionChecker = origAgentVersionChecker
 		verifyRunner = origVerifyRunner
 	})
 
+	agentVersionChecker = func(ctx context.Context, def agents.Definition) (string, error) {
+		return def.Version, nil
+	}
 	agentRunner = func(ctx context.Context, rc agents.RunContext) (*agents.RunOutcome, error) {
 		ended := time.Now()
 		return &agents.RunOutcome{

@@ -23,8 +23,9 @@ import (
 
 // These function variables allow tests to stub external dependencies.
 var (
-	agentRunner  = agents.Run
-	verifyRunner = verify.Run
+	agentRunner         = agents.Run
+	agentVersionChecker = agents.AgentVersion
+	verifyRunner        = verify.Run
 )
 
 // Execute runs the CLI.
@@ -224,15 +225,15 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		return fmt.Errorf("run already in progress at %s", runProgressPath)
 	}
 	agentVersion := agentDef.Version
-	if actualVersion, hasHarness, err := agents.AgentVersion(ctx, agentDef); err != nil {
+	actualVersion, err := agentVersionChecker(ctx, agentDef)
+	if err != nil {
 		return fmt.Errorf("check version for agent %q: %w", agentDef.Name, err)
-	} else if hasHarness {
-		if actualVersion != agentDef.Version {
-			return fmt.Errorf("agent %q version mismatch: expected %s, got %s", agentDef.Name, agentDef.Version, actualVersion)
-		}
-		agentVersion = actualVersion
-		agentDef.Version = actualVersion
 	}
+	if actualVersion != agentDef.Version {
+		return fmt.Errorf("agent %q version mismatch: expected %s, got %s", agentDef.Name, agentDef.Version, actualVersion)
+	}
+	agentVersion = actualVersion
+	agentDef.Version = actualVersion
 	runID := fmt.Sprintf("run_%d", time.Now().Unix())
 	now := time.Now()
 	start := types.RunStart{
@@ -286,9 +287,6 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		if outcome == nil || outcome.Progress == nil {
 			return fmt.Errorf("agent runner returned no progress")
 		}
-		if outcome.Manual {
-			allowContinues = false
-		}
 
 		turnProgress := outcome.Progress
 		if s := strings.TrimSpace(turnProgress.Session); s != "" {
@@ -332,12 +330,6 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 		}
 		if runErr != nil {
 			return fmt.Errorf("agent run failed: %w", runErr)
-		}
-		if outcome.Manual {
-			if err := printer.App("Manual agent; progress file recorded. Please run the agent manually if needed."); err != nil {
-				return err
-			}
-			break
 		}
 		if !allowContinues {
 			break

@@ -23,28 +23,25 @@ type RunContext struct {
 
 type RunOutcome struct {
 	Progress *types.RunProgress
-	Manual   bool
 }
 
-// AgentVersion returns the actual version reported by the agent harness, if any.
-// The boolean indicates whether a harness exists (manual agents return false).
-func AgentVersion(ctx context.Context, def Definition) (string, bool, error) {
+// AgentVersion returns the actual version reported by the agent harness.
+func AgentVersion(ctx context.Context, def Definition) (string, error) {
 	agent, ok := buildAgent(ctx, def, nil)
 	if !ok {
-		return "", false, nil
+		return "", fmt.Errorf("no harness for agent %q", def.Name)
 	}
 	version, err := agent.Version()
 	if err != nil {
-		return "", true, err
+		return "", err
 	}
 	if strings.TrimSpace(version) == "" {
-		return "", true, fmt.Errorf("agent %q returned an empty version", def.Name)
+		return "", fmt.Errorf("agent %q returned an empty version", def.Name)
 	}
-	return version, true, nil
+	return version, nil
 }
 
-// Run invokes the harness for the given agent. Some agents are manual and
-// simply return a stub progress file instructing the user to run the agent.
+// Run invokes the harness for the given agent.
 func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 	modelName := rc.ModelName
 	if modelName == "" && rc.LLM != nil {
@@ -63,15 +60,9 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 		results := agent.Run(rc.ScenarioPath, *llm, rc.Session, rc.Instructions)
 		ended := time.Now()
 		progress := runResultsToProgress(modelName, rc, started, ended, results)
-		return &RunOutcome{Progress: progress, Manual: false}, errorFromRunResults(results)
+		return &RunOutcome{Progress: progress}, errorFromRunResults(results)
 	}
-
-	switch rc.Agent.Name {
-	case "codalotl":
-		return runManual(rc, "Run the codalotl agent manually in the scenario directory.")
-	default:
-		return runManual(rc, fmt.Sprintf("No harness for agent %q; please run manually.", rc.Agent.Name))
-	}
+	return nil, fmt.Errorf("no harness for agent %q", rc.Agent.Name)
 }
 
 func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (Agent, bool) {
@@ -87,30 +78,6 @@ func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (A
 	default:
 		return nil, false
 	}
-}
-
-func runManual(rc RunContext, note string) (*RunOutcome, error) {
-	modelName := rc.ModelName
-	if modelName == "" && rc.LLM != nil {
-		modelName = rc.LLM.Name
-	}
-	now := time.Now()
-	progress := &types.RunProgress{
-		RunID:           "",
-		Scenario:        rc.ScenarioName,
-		Agent:           rc.Agent.Name,
-		AgentVersion:    rc.Agent.Version,
-		Model:           modelName,
-		StartedAt:       now,
-		UpdatedAt:       now,
-		EndedAt:         &now,
-		Session:         rc.Session,
-		DurationSeconds: 0,
-		TokenUsage:      types.TokenUsage{},
-		Notes:           note,
-		Transcripts:     []string{note},
-	}
-	return &RunOutcome{Progress: progress, Manual: true}, nil
 }
 
 func runResultsToProgress(modelName string, rc RunContext, started time.Time, ended time.Time, results RunResults) *types.RunProgress {
