@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765555354",
+  "scenario": "self/parse_test_file",
+  "agent": "crush",
+  "agent_version": "0.23.0",
+  "model": "grok-4-1-fast-reasoning",
+  "started_at": "2025-12-12T16:02:34.840385757Z",
+  "progress": {
+    "run_id": "run_1765555354",
+    "scenario": "self/parse_test_file",
+    "agent": "crush",
+    "agent_version": "0.23.0",
+    "model": "grok-4-1-fast-reasoning",
+    "started_at": "2025-12-12T16:02:34.840385757Z",
+    "updated_at": "2025-12-12T16:04:52.343586501Z",
+    "ended_at": "2025-12-12T16:04:52.343585001Z",
+    "duration_seconds": 137.503572853,
+    "token_usage": {
+      "input": 31446,
+      "cached_input": 0,
+      "write_cached_input": 0,
+      "output": 31502,
+      "total": 62948,
+      "cost": 0.0485184
+    }
+  },
+  "verified_at": "2025-12-12T16:04:55.638801836Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "go: downloading github.com/stretchr/testify v1.11.1\ngo: downloading github.com/davecgh/go-spew v1.1.1\ngo: downloading github.com/pmezard/go-difflib v1.0.0\n?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Valid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Valid/run_quoted_double (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"./mypkg\", Run:\"TestImportant|TestThing\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./mypkg\", Run:\"\\\"TestImportant|TestThing\\\"\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -2,3 +2,3 @@\n            \t            \t  Target: (string) (len=7) \"./mypkg\",\n            \t            \t- Run: (string) (len=23) \"TestImportant|TestThing\"\n            \t            \t+ Run: (string) (len=25) \"\\\"TestImportant|TestThing\\\"\"\n            \t            \t }\n            \tTest:       \tTestGABScenarioTestTargets_Valid/run_quoted_double\n    --- FAIL: TestGABScenarioTestTargets_Valid/run_quoted_single (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"./mypkg\", Run:\"TestImportant/^(Sub1|Sub2)$\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./mypkg\", Run:\"'TestImportant/^(Sub1|Sub2)$'\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -2,3 +2,3 @@\n            \t            \t  Target: (string) (len=7) \"./mypkg\",\n            \t            \t- Run: (string) (len=27) \"TestImportant/^(Sub1|Sub2)$\"\n            \t            \t+ Run: (string) (len=29) \"'TestImportant/^(Sub1|Sub2)$'\"\n            \t            \t }\n            \tTest:       \tTestGABScenarioTestTargets_Valid/run_quoted_single\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/absolute_path (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/absolute_path\n    --- FAIL: TestGABScenarioTestTargets_Invalid/package_ellipsis_with_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/package_ellipsis_with_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1765556267",
+  "scenario": "self/copy_to_dir",
+  "agent": "crush",
+  "agent_version": "0.23.0",
+  "model": "grok-4-1-fast-reasoning",
+  "started_at": "2025-12-12T16:17:47.15167018Z",
+  "progress": {
+    "run_id": "run_1765556267",
+    "scenario": "self/copy_to_dir",
+    "agent": "crush",
+    "agent_version": "0.23.0",
+    "model": "grok-4-1-fast-reasoning",
+    "started_at": "2025-12-12T16:17:47.15167018Z",
+    "updated_at": "2025-12-12T16:20:23.03910096Z",
+    "ended_at": "2025-12-12T16:20:23.03909846Z",
+    "duration_seconds": 155.886908321,
+    "token_usage": {
+      "input": 40810,
+      "cached_input": 0,
+      "write_cached_input": 0,
+      "output": 40921,
+      "total": 81731,
+      "cost": 0.0374227
+    }
+  },
+  "verified_at": "2025-12-12T16:20:23.561779627Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "verify.modification-rules",
+      "passed": false,
+      "error": "internal/setup in verify.must-modify was not modified\ninternal/verify in verify.must-modify was not modified"
+    }
+  ]
+}
