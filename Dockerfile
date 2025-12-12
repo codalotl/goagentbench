@@ -34,7 +34,7 @@ RUN git config --system user.name "goagentbench" \
  && git config --system user.email "goagentbench@example.com"
 
 #
-# Arch (will be "amd64" or "arm64"):
+# Arch (will be "amd64" or "arm64", typically):
 #
 ARG TARGETARCH
 
@@ -45,8 +45,11 @@ ARG GO_VERSION=1.25.5
 RUN curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o /tmp/go.tgz \
  && tar -C /usr/local -xzf /tmp/go.tgz \
  && rm /tmp/go.tgz
+
+# NOTE/TODO: By setting GOPATH to /home/runner and then installing something, /home/runner becomes owned by root, which we fix below
 ENV GOPATH=/home/runner/go
 ENV PATH=${GOPATH}/bin:/usr/local/go/bin:${PATH}
+RUN go install golang.org/x/tools/gopls@latest
 
 #
 # Codex CLI:
@@ -123,7 +126,8 @@ RUN set -eux \
 #
 RUN useradd -m -s /bin/bash runner \
  && mkdir -p /workspace \
- && chown -R runner:runner /workspace
+ && chown -R runner:runner /workspace \
+ && chown -R runner:runner /home/runner
 USER runner
 WORKDIR /workspace
 
