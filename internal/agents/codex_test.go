@@ -39,12 +39,22 @@ func TestCalculateCodexCost(t *testing.T) {
 	cached := 1_000_000
 	output := 500_000
 
-	cost := calculateCodexCost(nonCached, cached, output)
+	cost := calculateCodexCost("gpt-5.1-codex", nonCached, cached, output)
 
-	require.InDelta(t, 7.625, cost, 1e-6)
+	require.InDelta(t, 7.43, cost, 1e-6)
+}
+
+func TestCalculateCodexCost_GPT52(t *testing.T) {
+	nonCached := 2_000_000
+	cached := 1_000_000
+	output := 500_000
+
+	cost := calculateCodexCost("gpt-5.2", nonCached, cached, output)
+
+	require.InDelta(t, 10.68, cost, 1e-6)
 }
 
 func TestCalculateCodexCostZero(t *testing.T) {
-	cost := calculateCodexCost(0, 0, 0)
+	cost := calculateCodexCost("gpt-5.1-codex", 0, 0, 0)
 	require.Zero(t, cost)
 }

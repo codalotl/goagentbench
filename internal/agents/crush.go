@@ -50,7 +50,6 @@ func (c *crushAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for crush")}
 	}
-	session = strings.TrimSpace(session)
 
 	provider, ok := crushProviderForLLM[strings.TrimSpace(llm.Name)]
 	if !ok || strings.TrimSpace(provider) == "" {
@@ -73,6 +72,8 @@ func (c *crushAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		absScenarioDir = cwd
 	}
 	dataDir := filepath.Join(absScenarioDir, ".crush")
+
+	// NOTE: -y/--yolo doesn't work. It seems run automatically enables auto-approve mode.
 	args := []string{"-D", dataDir, "run", "-q", trimmedInstructions}
 	var outputBytes []byte
 	var err error
