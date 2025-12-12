@@ -12,6 +12,9 @@ llms:
   #
   # OpenAI Models
   #
+  - name: gpt-5.2-high
+    model: gpt-5.2
+    reasoning-level: high
   - name: gpt-5.1-codex-high
     model: gpt-5.1-codex
     reasoning-level: high
