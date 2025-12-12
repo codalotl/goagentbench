@@ -18,7 +18,7 @@ agent:
     patch:
       - somepatch.patch
 
-    Implement this. You may write tets.
+    Implement this. You may write tests.
 
 verify:
   copy:
