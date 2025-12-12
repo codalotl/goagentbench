@@ -37,7 +37,9 @@ agents:
     supports-llms:
       - claude-opus-4.5-thinking
       - claude-sonnet-4.5-thinking
-  - name: aider
-    version: 0.86.1
+  - name: crush
+    version: 0.23.0
     supports-llms:
+      - grok-code-fast-1
+      - grok-4-1-fast-reasoning
       - gpt-5.1-codex-high

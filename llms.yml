@@ -35,6 +35,8 @@ llms:
   #
   - name: grok-code-fast-1
     model: grok-code-fast-1
+  - name: grok-4-1-fast-reasoning
+    model: grok-4-1-fast-reasoning
   
   #
   # Cursor Models
