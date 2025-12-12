@@ -130,11 +130,6 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	return &Result{Report: report}, nil
 }
 
-var verifyIgnoredFiles = map[string]struct{}{
-	".run-start.json":    {},
-	".run-progress.json": {},
-}
-
 func checkModificationRules(sc *scenario.Scenario, workspaceDir string) ([]string, error) {
 	changes, err := listWorkspaceChanges(workspaceDir)
 	if err != nil {
@@ -222,7 +217,8 @@ func filterIgnoredChanges(paths []string) []string {
 	out := make([]string, 0, len(paths))
 	for _, p := range paths {
 		clean := filepath.Clean(p)
-		if _, ok := verifyIgnoredFiles[clean]; ok {
+		// Ignore all files in root that begin with dot
+		if strings.HasPrefix(clean, ".") && !strings.Contains(clean, string(filepath.Separator)) {
 			continue
 		}
 		out = append(out, clean)

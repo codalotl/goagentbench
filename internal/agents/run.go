@@ -82,6 +82,8 @@ func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (A
 		return newCursorAgent(ctx, printer), true
 	case "claude":
 		return newClaudeAgent(ctx, printer), true
+	case "crush":
+		return newCrushAgent(ctx, printer), true
 	default:
 		return nil, false
 	}
