@@ -21,10 +21,17 @@ RUN apt-get update \
     python3 \
     python3-venv \
     python3-pip \
+    sqlite3 \
     sudo \
     tzdata \
     vim-tiny \
  && rm -rf /var/lib/apt/lists/*
+
+#
+# Git default identity (system-wide) so commits work out of the box:
+#
+RUN git config --system user.name "goagentbench" \
+ && git config --system user.email "goagentbench@example.com"
 
 #
 # Arch (will be "amd64" or "arm64"):
@@ -93,18 +100,23 @@ RUN set -eux \
  && cursor-agent --help >/dev/null
 
 #
-# Aider:
+# Crush:
 #
-ARG AIDER_VERSION=0.86.1
-ARG PIPX_VERSION=1.7.1
-ENV PIPX_BIN_DIR=/usr/local/bin
-ENV PIPX_HOME=/opt/pipx
-ENV AIDER_CHECK_UPDATE=false
+ARG CRUSH_VERSION=0.23.0
 RUN set -eux \
- && mkdir -p "${PIPX_HOME}" \
- && python3 -m pip install --no-cache-dir --break-system-packages "pipx==${PIPX_VERSION}" \
- && pipx install "aider-chat==${AIDER_VERSION}" \
- && aider --version
+ && case "${TARGETARCH}" in \
+      amd64) CRUSH_ARCH="x86_64" ;; \
+      arm64) CRUSH_ARCH="arm64" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+ && CRUSH_TGZ="crush_${CRUSH_VERSION}_Linux_${CRUSH_ARCH}.tar.gz" \
+ && CRUSH_URL="https://github.com/charmbracelet/crush/releases/download/v${CRUSH_VERSION}/${CRUSH_TGZ}" \
+ && curl -fsSL "${CRUSH_URL}" -o "/tmp/${CRUSH_TGZ}" \
+ && tar -xzf "/tmp/${CRUSH_TGZ}" -C /tmp \
+ && mv "/tmp/crush_${CRUSH_VERSION}_Linux_${CRUSH_ARCH}/crush" /usr/local/bin/crush \
+ && chmod +x /usr/local/bin/crush \
+ && rm -rf "/tmp/${CRUSH_TGZ}" "/tmp/crush_${CRUSH_VERSION}_Linux_${CRUSH_ARCH}" \
+ && crush --version
 
 #
 # User / Working Directory
