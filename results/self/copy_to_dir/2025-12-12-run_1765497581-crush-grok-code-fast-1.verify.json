@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765497581",
+  "scenario": "self/copy_to_dir",
+  "agent": "crush",
+  "agent_version": "0.23.0",
+  "model": "grok-code-fast-1",
+  "started_at": "2025-12-11T23:59:41.751037463Z",
+  "progress": {
+    "run_id": "run_1765497581",
+    "scenario": "self/copy_to_dir",
+    "agent": "crush",
+    "agent_version": "0.23.0",
+    "model": "grok-code-fast-1",
+    "started_at": "2025-12-11T23:59:41.751037463Z",
+    "updated_at": "2025-12-12T00:01:46.062359007Z",
+    "ended_at": "2025-12-12T00:01:46.062353132Z",
+    "duration_seconds": 124.310796639,
+    "token_usage": {
+      "input": 120,
+      "cached_input": 0,
+      "write_cached_input": 0,
+      "output": 29374,
+      "total": 29494,
+      "cost": 0.28213025
+    }
+  },
+  "verified_at": "2025-12-12T00:01:46.528053549Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n--- FAIL: TestCopyToDirCreatesMissingDestination (0.00s)\n    gab_copy_test.go:62: destination dir still exists after undo; err=\u003cnil\u003e\n--- FAIL: TestCopyToDirCopiesDirectory (0.00s)\n    gab_copy_test.go:93: copied directory still exists after undo; err=\u003cnil\u003e\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/fsutil\t0.010s\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1765496866",
+  "scenario": "self/fix_test_paths",
+  "agent": "crush",
+  "agent_version": "0.23.0",
+  "model": "grok-code-fast-1",
+  "started_at": "2025-12-11T23:47:46.147447465Z",
+  "progress": {
+    "run_id": "run_1765496866",
+    "scenario": "self/fix_test_paths",
+    "agent": "crush",
+    "agent_version": "0.23.0",
+    "model": "grok-code-fast-1",
+    "started_at": "2025-12-11T23:47:46.147447465Z",
+    "updated_at": "2025-12-11T23:49:30.38090768Z",
+    "ended_at": "2025-12-11T23:49:30.380905139Z",
+    "duration_seconds": 104.232628048,
+    "token_usage": {
+      "input": 699,
+      "cached_input": 0,
+      "write_cached_input": 0,
+      "output": 25597,
+      "total": 26296,
+      "cost": 0.228765
+    }
+  },
+  "verified_at": "2025-12-11T23:49:30.826115305Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "verify.modification-rules",
+      "passed": false,
+      "error": "workspace has no changes but verify.must-modify requires modifications"
+    }
+  ]
+}

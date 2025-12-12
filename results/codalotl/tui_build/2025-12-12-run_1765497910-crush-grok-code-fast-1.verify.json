@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1765497910",
+  "scenario": "codalotl/tui_build",
+  "agent": "crush",
+  "agent_version": "0.23.0",
+  "model": "grok-code-fast-1",
+  "started_at": "2025-12-12T00:05:10.144563504Z",
+  "progress": {
+    "run_id": "run_1765497910",
+    "scenario": "codalotl/tui_build",
+    "agent": "crush",
+    "agent_version": "0.23.0",
+    "model": "grok-code-fast-1",
+    "started_at": "2025-12-12T00:05:10.144563504Z",
+    "updated_at": "2025-12-12T00:14:46.210934798Z",
+    "ended_at": "2025-12-12T00:14:46.210932132Z",
+    "duration_seconds": 576.052158054,
+    "token_usage": {
+      "input": 449,
+      "cached_input": 0,
+      "write_cached_input": 0,
+      "output": 82666,
+      "total": 83115,
+      "cost": 1.9966927
+    }
+  },
+  "verified_at": "2025-12-12T00:14:49.135185091Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./internal/q/tui",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/codalotl/internal/q/tui\t2.364s\n"
+    }
+  ]
+}
