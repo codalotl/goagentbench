@@ -14,7 +14,7 @@ In the examples below, I am using `tui_build` as an example scenario. It can be 
 
 Running the scenario means checking out a repo to `$WORKSPACE/$SCENARIODIR` applying setup steps there, and then letting the agent run there.
 
-Results are written to `./results` (see ## verify below) by default. This directory can be overriden by the env var `$GOAGENTBENCH_RESULTS`.
+Results are written to `./results` (see ### verify below) by default. This directory can be overriden by the env var `$GOAGENTBENCH_RESULTS`.
 
 ## Output
 
@@ -79,7 +79,7 @@ If the `--only-report` option is used, it only prints out the summary report, an
 
 Calling `verify` with or without the `--only-report` flag should be idempotent.
 
-## exec
+### exec
 
 `goagentbench exec --agent=codex [--model=gpt-5.1-codex-max-medium] tui_build`:
 - Runs `validate-scenario`
@@ -87,6 +87,44 @@ Calling `verify` with or without the `--only-report` flag should be idempotent.
 - Runs `run-agent`
 - Runs `verify`
 - If any steps fail, we abort the pipeline (ex: validate scenario found issue; setup cannot clone repo; agent exits with status 1).
+
+### report
+
+`goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22"`
+
+Options:
+- `--scenarios`: comma separated list of scenarios. If omitted, all scenarios are used.
+- `--agents`: comma separated list of agents. If omitted, all agents are used.
+- `--models`: comma separated list of models. If omitted, all models are used.
+- `--limit`: number of results (N) to use for a given {scenario, agent, llm}. Defaults to 1 if omitted. Uses the most recent N results (based on verified_at).
+- `--after`: all results must occur on-or-after this date (YYYY-MM-DD, in the default tz of the running computer).
+- `--all-agent-versions`: includes all agent versions (default: most recent version by semver).
+- `--include-tokens`: include tokens in the output (default: false).
+
+Outputs a CSV to stdout with this data (based on data in ./results) (headers included in CSV). Columns:
+- agent: {agent, model} are the "group by key". This pair is unique in the CSV.
+- model: see agent
+- agent_version: version of the agent. If multiple, comma separated list of versions, sorted by semver if version is semver, otherwise by string.
+- unique_scenarios: number of unique scenarios aggregated for this {agent, model}.
+- count: number of results for the {agent, model} pair.
+- success: number of successful results.
+- partial_success_score: sum of partial success scores (if a result doesn't use partial successes, success=1 and failure=0).
+- success_rate: fraction of success / count
+- partial_success_rate: partial_success_score / count
+- avg_cost: average cost of the runs (even if failure).
+- avg_time: average time of the runs (even if failure).
+- avg_tok_input: average input tokens per result. Only shown if --include-tokens.
+- avg_tok_cached_input
+- avg_tok_write_cached_input
+- avg_tok_output
+- avg_tok_total
+
+Other Notes:
+- Sort the CSV results by success_rate desc.
+- Only one result per run_id should be used.
+- If a result's token or cost is 0, it is considered missing, and not included in averages (but the average of all zeros is "0" in the output csv).
+- Do NOT include any results from `./results/smoke`.
+- Round all decimal values (ex: success_rate; avg_cost; etc) to nearest hundredth.
 
 ## scenario.yml
 
