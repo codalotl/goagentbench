@@ -124,7 +124,7 @@ Other Notes:
 - Only one result per run_id should be used.
 - If a result's token or cost is 0, it is considered missing, and not included in averages (but the average of all zeros is "0" in the output csv).
 - Do NOT include any results from `./results/smoke`.
-- Round all decimal values (ex: success_rate; avg_cost; etc) to nearest hundredth.
+- Round all decimal values (ex: success_rate; avg_cost; etc) to nearest hundredth. Remove trailing zeros after the decimal, and unnecessary decimals.
 
 ## scenario.yml
 
