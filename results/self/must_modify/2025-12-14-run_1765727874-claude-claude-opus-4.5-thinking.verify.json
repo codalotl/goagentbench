@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1765727874",
+  "scenario": "self/must_modify",
+  "agent": "claude",
+  "agent_version": "2.0.64",
+  "model": "claude-opus-4.5-thinking",
+  "started_at": "2025-12-14T15:57:54.723608679Z",
+  "progress": {
+    "run_id": "run_1765727874",
+    "scenario": "self/must_modify",
+    "agent": "claude",
+    "agent_version": "2.0.64",
+    "model": "claude-opus-4.5-thinking",
+    "started_at": "2025-12-14T15:57:54.723608679Z",
+    "updated_at": "2025-12-14T16:00:40.869105089Z",
+    "session": "87bdb349-7a7e-4ee6-aaa4-4810b6f30dae",
+    "ended_at": "2025-12-14T16:00:40.869101672Z",
+    "duration_seconds": 166.138449659,
+    "token_usage": {
+      "input": 876,
+      "cached_input": 865361,
+      "write_cached_input": 56122,
+      "output": 7772,
+      "total": 930131,
+      "cost": 0.9982939999999998
+    }
+  },
+  "verified_at": "2025-12-14T16:00:41.558064381Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/goagentbench\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify/gab\t0.066s\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\n"
+    }
+  ]
+}

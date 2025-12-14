@@ -14,56 +14,125 @@ import (
 	"github.com/codalotl/goagentbench/internal/verify"
 )
 
-func TestRunEnforcesModificationRules(t *testing.T) {
+func TestRunEnforcesMustModifyRules(t *testing.T) {
+	const mustModifyTestName = "verify.must-modify"
+
 	t.Setenv("GOAGENTBENCH_SKIP_REMOTE", "1")
 
-	tests := []struct {
-		name        string
-		apply       func(t *testing.T, repo string)
-		wantSuccess bool
+	cases := []struct {
+		name       string
+		scenario   func(name string) *scenario.Scenario
+		apply      func(t *testing.T, repo string)
+		shouldPass bool
+		wantOutput []string
 	}{
 		{
-			name: "requiresMustModifyChanges",
-			apply: func(t *testing.T, repo string) {
-				// keep repo clean so must-modify fails
-			},
-			wantSuccess: false,
+			name:       "failsWhenNothingChanged",
+			scenario:   baseScenario,
+			apply:      func(t *testing.T, repo string) {},
+			shouldPass: false,
+			wantOutput: []string{"allowed"},
 		},
 		{
-			name: "failsOnNoModifyChanges",
-			apply: func(t *testing.T, repo string) {
-				writeFile(t, repo, "allowed/base.txt", "changed")
-				writeFile(t, repo, "forbidden/secret.txt", "leaked")
-			},
-			wantSuccess: false,
-		},
-		{
-			name: "mustModifyRuleNotSatisfied",
-			apply: func(t *testing.T, repo string) {
-				writeFile(t, repo, "other/change.txt", "update")
-			},
-			wantSuccess: false,
-		},
-		{
-			name: "directoryRuleIsNotRecursive",
+			name:     "failsWhenOnlyNestedChange",
+			scenario: baseScenario,
 			apply: func(t *testing.T, repo string) {
 				require.NoError(t, os.MkdirAll(filepath.Join(repo, "allowed/sub"), 0o755))
-				writeFile(t, repo, "allowed/sub/nested.txt", "nested change")
+				writeFile(t, repo, "allowed/sub/nested.txt", "nested")
 			},
-			wantSuccess: false,
+			shouldPass: false,
+			wantOutput: []string{"allowed"},
 		},
 		{
-			name: "passesWithAllowedChangesAndIgnoresMetadata",
+			name:     "failsWhenNoModifyHit",
+			scenario: baseScenario,
 			apply: func(t *testing.T, repo string) {
 				writeFile(t, repo, "allowed/base.txt", "changed")
+				writeFile(t, repo, "forbidden/secret.txt", "leak")
+			},
+			shouldPass: false,
+			wantOutput: []string{"forbidden/secret.txt"},
+		},
+		{
+			name:     "passesWithMustModifySatisfiedAndOtherChangesAllowed",
+			scenario: baseScenario,
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, "allowed/base.txt", "changed")
+				writeFile(t, repo, "other/extra.txt", "extra")
 				writeFile(t, repo, ".run-start.json", "{}")
 				writeFile(t, repo, ".run-progress.json", "{}")
 			},
-			wantSuccess: true,
+			shouldPass: true,
+		},
+		{
+			name:     "passesWhenMustModifySatisfiedByUntrackedFile",
+			scenario: baseScenario,
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, "allowed/new.txt", "new")
+			},
+			shouldPass: true,
+		},
+		{
+			name:     "passesWhenMustModifySatisfiedByDeletion",
+			scenario: baseScenario,
+			apply: func(t *testing.T, repo string) {
+				require.NoError(t, os.Remove(filepath.Join(repo, "allowed/base.txt")))
+			},
+			shouldPass: true,
+		},
+		{
+			name: "passesWhenMustModifyEntryHasTrailingSlash",
+			scenario: func(name string) *scenario.Scenario {
+				sc := baseScenario(name)
+				sc.Verify.MustModify = scenario.StringList{"allowed/"}
+				return sc
+			},
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, "allowed/base.txt", "changed")
+			},
+			shouldPass: true,
+		},
+		{
+			name: "passesWhenMustModifyEntryIsGlob",
+			scenario: func(name string) *scenario.Scenario {
+				sc := baseScenario(name)
+				sc.Verify.MustModify = scenario.StringList{"allowed/*.txt"}
+				return sc
+			},
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, "allowed/base.txt", "changed")
+			},
+			shouldPass: true,
+		},
+		{
+			name: "failsWhenMustModifyEntryIsGlobAndOnlyNestedChanged",
+			scenario: func(name string) *scenario.Scenario {
+				sc := baseScenario(name)
+				sc.Verify.MustModify = scenario.StringList{"allowed/*.txt"}
+				return sc
+			},
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, "allowed/sub/nested.txt", "nested")
+			},
+			shouldPass: false,
+			wantOutput: []string{"allowed/*.txt"},
+		},
+		{
+			name: "failsWhenMustModifyEntryIsBookkeepingFileEvenIfChanged",
+			scenario: func(name string) *scenario.Scenario {
+				sc := baseScenario(name)
+				sc.Verify.MustModify = scenario.StringList{".run-start.json"}
+				return sc
+			},
+			apply: func(t *testing.T, repo string) {
+				writeFile(t, repo, ".run-start.json", "{}")
+			},
+			shouldPass: false,
+			wantOutput: []string{".run-start.json"},
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
 			workspaceRoot := t.TempDir()
 			scenarioName := "integration-scenario"
@@ -78,20 +147,26 @@ func TestRunEnforcesModificationRules(t *testing.T) {
 				Printer:       output.NewPrinter(nil),
 			}
 
-			res, err := verify.Run(context.Background(), opts, baseScenario(scenarioName))
+			sc := tt.scenario(scenarioName)
+			res, err := verify.Run(context.Background(), opts, sc)
 			require.NoError(t, err)
 			require.NotNil(t, res)
 			require.NotNil(t, res.Report)
-			require.Equal(t, tt.wantSuccess, res.Report.Success)
 
-			if tt.wantSuccess {
+			if tt.shouldPass {
+				require.True(t, res.Report.Success)
 				require.Empty(t, res.Report.Tests)
 				return
 			}
 
+			require.False(t, res.Report.Success)
 			require.Len(t, res.Report.Tests, 1)
+			require.Equal(t, mustModifyTestName, res.Report.Tests[0].Name)
 			require.False(t, res.Report.Tests[0].Passed)
-			require.NotEmpty(t, res.Report.Tests[0].Error)
+			require.Empty(t, res.Report.Tests[0].Error)
+			for _, want := range tt.wantOutput {
+				require.Contains(t, res.Report.Tests[0].Output, want)
+			}
 		})
 	}
 }

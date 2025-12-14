@@ -23,8 +23,8 @@ agents:
   - name: cursor-agent
     version: 2025.11.25-d5b3271
     supports-llms:
-      - grok-code-fast-1
       - composer-1
+      - grok-code-fast-1
       - gemini-3-pro
       - gpt-5.1-codex-high
       - claude-sonnet-4.5-thinking

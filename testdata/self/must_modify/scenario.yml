@@ -12,24 +12,20 @@ setup: null
 
 agent:
   instructions: |
-    Read SPEC.md and README.md.
-
-    Rename scenario's only-modify to must-modify.
-
-    The behavior of must-modify is as follows:
-
-    # Must modify these files or directories. Failure to modify these results in a verify -> failed.
-    # If an element is a directory (optional slash allowed), we can only modify/create/delete files directly in that directory (nonrecursively). Supports globs.
-    # If these contraints are not met, the agent failed the scenario, and the verify report should reflect that.
-    must-modify:
-      - internal/q/tui
-    
-    Make sure this is implemented properly.
+      Read SPEC.md and README.md.
+      - Rename scenario's verify.only-modify to verify.must-modify.
+      - must-modify only means: for each entry, at least one working-tree change must match it. Directory entries are nonrecursive (trailing slash optional); globs are allowed.
+      - Changes elsewhere are allowed unless blocked by no-modify.
+      - Consider tracked/untracked edits and deletions; ignore .run-start.json, .run-progress.json, and .git/.
+      - If any must-modify entry lacks a matching change, or a no-modify path is changed, verification fails before verify.tests/verify.partial-tests are checked.
+          - Emit exactly one failed TestResult named verify.must-modify.
+          - Put the human-readable description (missing entries and/or offending paths) in TestResult.Output; leave TestResult.Error empty unless an unexpected internal error prevents determining changes.
+      - If checks pass, run tests as usual.
 
 verify:
   copy:
     - from: gab_test.go 
-      to: internal/verify
+      to: internal/verify/gab
   must-modify:
     - internal/scenario
     - internal/verify

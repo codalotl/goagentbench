@@ -57,10 +57,18 @@ Useful environment variables:
 - Avoid clobbering tests the agent might create. A good pattern is to copy integration tests into a dedicated, test-only package.
 - Expect iteration: run it across multiple agents/models and tighten the prompt + tests until the task is unambiguous.
 
-Hard requirements:
+Requirements:
 - Must run on Linux (the `./docker_dev.sh` container is the reference environment).
 - Must be verifiable with `go test` (no browsers/GUI-driven verification; no custom test scripts).
 - If you need to change a scenario after publishing results, create a new version by appending a semver suffix (e.g. `myscenario-1.1`).
+
+Tips:
+- It's often faster to iterate on a scenario without using Docker (NOTE: the harness runs agents in "dangerous" mode).
+- I cannot stress enough how important iteration is. It's very important to harden your scenario against a **range** of valid LLM outputs.
+    - Your prompt and tests need to account for this range. Clarify your prompt to avoid ambiguity. Write your tests so that any valid solution works.
+- The ideal tests are integration tests (package foo_test), **dropped in their own package**, to avoid clobbering anything. Avoid testing unexported helpers unless your prompt indicates that's a clear, testable interface.
+
+Any PR with new scenarios MUST come with results from 2+ agents, ideally with different LLMs.
 
 ### Adding Agents/LLMs
 
@@ -76,7 +84,7 @@ To add a new agent:
 Agent requirements:
 - The agent MUST implement a CLI mode (noninteractive. No GUI; no TUI).
 - The agent SHOULD report token usage and cost (otherwise, you can manually enter it).
-- The agent SHOULD support session resumes.
+- The agent SHOULD support session resumes via CLI.
 
 ### Agent Guidelines
 
