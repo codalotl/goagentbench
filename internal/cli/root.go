@@ -41,6 +41,7 @@ func Execute() error {
 	root.AddCommand(newRunAgentCmd(workspacePath))
 	root.AddCommand(newExecCmd(workspacePath))
 	root.AddCommand(newVerifyCmd(workspacePath))
+	root.AddCommand(newReportCmd())
 	executed, err := root.ExecuteC()
 	if err != nil {
 		maybePrintUsage(executed, root, err)

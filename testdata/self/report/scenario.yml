@@ -1,0 +1,26 @@
+name: Implement report subcommand from SPEC.md
+repo: github.com/codalotl/goagentbench
+commit: 24d744816a5034acd6d36ac457a19451201e9b01
+
+classification:
+  type: feature
+  has-spec: true
+  single-package: false
+  sees-failing-tests: false
+
+setup: null
+
+agent:
+  instructions: |
+    Read SPEC.md, and implement the `goagentbench report` subcommand as specified in the "### report" section.
+
+    Do not modify SPEC.md or any provided tests. You may add new tests.
+
+verify:
+  copy:
+    - from: gab_report
+      to: gab_report
+  must-modify:
+    - internal/cli
+  tests:
+    - ./...

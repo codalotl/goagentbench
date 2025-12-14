@@ -100,6 +100,7 @@ Options:
 - `--after`: all results must occur on-or-after this date (YYYY-MM-DD, in the default tz of the running computer).
 - `--all-agent-versions`: includes all agent versions (default: most recent version by semver).
 - `--include-tokens`: include tokens in the output (default: false).
+- `--publish`: publish these results (default: false).
 
 Outputs a CSV to stdout with this data (based on data in ./results) (headers included in CSV). Columns:
 - agent: {agent, model} are the "group by key". This pair is unique in the CSV.
@@ -125,6 +126,19 @@ Other Notes:
 - If a result's token or cost is 0, it is considered missing, and not included in averages (but the average of all zeros is "0" in the output csv).
 - Do NOT include any results from `./results/smoke`.
 - Round all decimal values (ex: success_rate; avg_cost; etc) to nearest hundredth. Remove trailing zeros after the decimal, and unnecessary decimals.
+
+Publishing results:
+If `--publish`, write the csv output to a file in the `./result_summaries/summary_<datetime>` directory, where `<datetime>` is the timestamp of the run (in human readable format, not epoch seconds). Within this dir, the file should be `report.csv`. As a peer to this file, write `command` which just writes the command that was run ex: `goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22" --publish`.
+
+In addition writing these files, also update README.md, as follows:
+- Repace the text between `<!-- BEGIN_RESULTS -->` and `<!-- END_RESULTS -->` with a markdown table version of the csv. Besure to keep the comment markers.
+- The table version of the CVS has fewer columns:
+    - Agent
+    - Model
+    - Success (format this as a percent, like `23%`)
+    - Avg Cost (format as `$1.23`)
+    - Avg Time (format as `1m 3s`)
+- Below the table, add the text, "Results as of <datetime>. See <link to the corresponding result_summaries item>".
 
 ## scenario.yml
 
