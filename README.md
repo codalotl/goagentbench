@@ -23,6 +23,10 @@ Benchmark AI coding agents and LLMs on Go-only coding tasks.
 Results as of 2025-12-14. See [result_summaries/summary_2025-12-14_12-51-12](result_summaries/summary_2025-12-14_12-51-12).
 <!-- END_RESULTS -->
 
+NOTES:
+- I tested grok with crush because I needed **some** agent to test it with, and crush seemed reasonable and able to be automated.
+- grok-4-1-fast-reasoning is unusable as an agent (it will do things like apply patch, it fails to apply, and then it declares itself successful and ends its turn).
+
 ## Concepts and Repo Structure
 
 A benchmark "test" in goagentbench is called a _scenario_. Each scenario is a self-contained task definition rooted at a directory under `testdata/`, with its main entry point at `scenario.yml`.
