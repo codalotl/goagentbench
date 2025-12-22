@@ -11,8 +11,9 @@ classification:
 setup: null
 
 agent:
+  package: internal/verify
   instructions: |
-    If a scenario.yml lists tests like by relative directory (ex: "internal/agent"), the test is run
+    In internal/verify, if a scenario.yml lists tests like by relative directory (ex: "internal/agent"), the test is run
     like `go test internal/agent`, which fails. Detect this case and run the proper test. Tests that are
     specified in Go-style package notation should continue to work as-is.
 

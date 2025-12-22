@@ -11,6 +11,7 @@ classification:
 setup: null
 
 agent:
+  package: internal/scenario
   instructions: |
     In internal/scenario, update the validation of test paths to match this:
 

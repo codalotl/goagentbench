@@ -42,6 +42,7 @@ type CopyStep struct {
 }
 
 type AgentConfig struct {
+	Package                          string `yaml:"package"`
 	Instructions                     string `yaml:"instructions"`
 	AllowMultipleTurns               bool   `yaml:"allow-multiple-turns"`
 	AllowMultipleTurnsOnFailedVerify bool   `yaml:"allow-multiple-turns-on-failed-verify"`

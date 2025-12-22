@@ -280,6 +280,9 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 			Agent:        agentDef,
 			Instructions: currentInstructions,
 			Session:      session,
+			Options: agents.RunOptions{
+				Package: strings.TrimSpace(sc.Agent.Package),
+			},
 			Printer:      printer,
 		})
 		if runErr != nil {

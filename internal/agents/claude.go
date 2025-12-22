@@ -32,7 +32,7 @@ func (c *claudeAgent) Version() (string, error) {
 	return claudeVersion(c.ctx)
 }
 
-func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults {
+func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instructions string, _ RunOptions) RunResults {
 	trimmedInstructions := strings.TrimSpace(instructions)
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for claude")}

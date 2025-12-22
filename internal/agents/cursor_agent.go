@@ -29,7 +29,7 @@ func (c *cursorAgent) Version() (string, error) {
 	return cursorAgentVersion(c.ctx)
 }
 
-func (c *cursorAgent) Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults {
+func (c *cursorAgent) Run(cwd string, llm LLMDefinition, session string, instructions string, _ RunOptions) RunResults {
 	trimmedInstructions := strings.TrimSpace(instructions)
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for cursor-agent")}

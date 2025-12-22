@@ -1,5 +1,11 @@
 package agents
 
+type RunOptions struct {
+	// Package is an optional Go package path (relative to the workspace root)
+	// that an agent may use to scope work (ex: "internal/cli").
+	Package string
+}
+
 // RunResults contains the details returned by an Agent Run invocation.
 type RunResults struct {
 	// Transcript is the full transcript
@@ -20,5 +26,5 @@ type RunResults struct {
 
 type Agent interface {
 	Version() (string, error)
-	Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults
+	Run(cwd string, llm LLMDefinition, session string, instructions string, opts RunOptions) RunResults
 }

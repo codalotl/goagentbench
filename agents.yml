@@ -36,3 +36,7 @@ agents:
       - grok-code-fast-1
       - grok-4-1-fast-reasoning
       - gpt-5.1-codex-high
+  - name: codalotl
+    version: 0.4.0
+    supports-llms:
+      - gpt-5.2-high

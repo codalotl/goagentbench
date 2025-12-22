@@ -18,6 +18,7 @@ setup:
     - git switch -c gab_tui_build && git add -A && git commit -m "update tests"
 
 agent:
+  package: internal/q/tui
   instructions: |
     In internal/q/tui, read the SPEC.md and build the package according to the spec.
     Do not install or use third party packages that aren't already used in go.mod.

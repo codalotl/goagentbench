@@ -1,6 +1,6 @@
-name: Tests partial credit with hidden tests
+name: Test that an agent is really likely to succeed in quickly.
 repo: github.com/codalotl/goagentbench
-commit: aefb88dbb06595bbb763a885413cfc3fa93f234c
+commit: 52e5065bb8038050577dee7d3be07d9de92b3862
 
 classification:
   type: build-package

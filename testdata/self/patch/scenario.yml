@@ -11,8 +11,9 @@ classification:
 setup: null
 
 agent:
+  package: internal/setup
   instructions: |
-    As part of setup, I the ability to apply patches. The scenario.yml patches look like this:
+    In internal/setup, as part of setup, I want the ability to apply patches. The scenario.yml patches look like this (see @SPEC.md):
 
     # patch: apply the following patches. Each patch should be in git unified diff format (paths are relative to $WORKSPACE/$SCENARIODIR)
     patch:

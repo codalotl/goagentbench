@@ -1,0 +1,9 @@
+agent,model,agent_version,unique_scenarios,count,success,partial_success_score,success_rate,partial_success_rate,avg_cost,avg_time
+codalotl,gpt-5.2-high,"0.2.2,0.3.0,0.4.0",7,7,7,7,1,1,0.45,469.69
+codex,gpt-5.2-high,0.71.0,7,7,7,7,1,1,0.56,630.71
+codex,gpt-5.1-codex-high,"0.65.0,0.66.0,0.71.0",7,7,6,6,0.86,0.86,1.39,636.84
+cursor-agent,composer-1,2025.11.25-d5b3271,7,7,4,4,0.57,0.57,0.27,66.29
+claude,claude-opus-4.5-thinking,"2.0.62,2.0.64",7,7,3,3,0.43,0.43,1.47,263.44
+crush,grok-code-fast-1,0.23.0,7,7,3,3,0.43,0.43,0.94,297.34
+claude,claude-sonnet-4.5-thinking,"2.0.62,2.0.64",7,7,1,1,0.14,0.14,0.94,285.2
+crush,grok-4-1-fast-reasoning,0.23.0,4,4,0,0,0,0,0.07,128.72

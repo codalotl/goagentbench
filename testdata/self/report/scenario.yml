@@ -11,8 +11,9 @@ classification:
 setup: null
 
 agent:
+  package: internal/cli
   instructions: |
-    Read SPEC.md, and implement the `goagentbench report` subcommand as specified in the "### report" section.
+    Read @SPEC.md, and implement the `goagentbench report` subcommand as specified in the "### report" section, in internal/cli.
 
     Do not modify SPEC.md or any provided tests. You may add new tests.
 
