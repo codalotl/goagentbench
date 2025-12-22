@@ -18,6 +18,7 @@ type RunContext struct {
 	Agent        Definition
 	Instructions string
 	Session      string
+	Options      RunOptions
 	Printer      *output.Printer
 }
 
@@ -57,7 +58,7 @@ func Run(ctx context.Context, rc RunContext) (*RunOutcome, error) {
 			return nil, fmt.Errorf("model is required for agent %q", rc.Agent.Name)
 		}
 		started := time.Now()
-		results := agent.Run(rc.ScenarioPath, *llm, rc.Session, rc.Instructions)
+		results := agent.Run(rc.ScenarioPath, *llm, rc.Session, rc.Instructions, rc.Options)
 		ended := time.Now()
 		progress := runResultsToProgress(modelName, rc, started, ended, results)
 		return &RunOutcome{Progress: progress}, errorFromRunResults(results)
@@ -69,6 +70,8 @@ func buildAgent(ctx context.Context, def Definition, printer *output.Printer) (A
 	switch def.Name {
 	case "codex":
 		return newCodexAgent(ctx, printer), true
+	case "codalotl":
+		return newCodalotlAgent(ctx, printer), true
 	case "cursor-agent":
 		return newCursorAgent(ctx, printer), true
 	case "claude":
@@ -89,7 +92,7 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 		transcripts = append(transcripts, transcript)
 	}
 	session := strings.TrimSpace(results.Session)
-	if session == "" {
+	if session == "" && rc.Agent.Name != "codalotl" {
 		session = strings.TrimSpace(rc.Session)
 	}
 

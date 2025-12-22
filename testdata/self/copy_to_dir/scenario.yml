@@ -11,6 +11,7 @@ classification:
 setup: null
 
 agent:
+  package: internal/fsutil
   instructions: |
     In internal/fsutil, rename CopyPath to CopyToDir, with the following changes. src may be a file or a dir. dst MUST be a dir (it's an error if dst is a file). But if
     dst doesn't exist, we build the directory. Along the way to building it, if any segment already exists as a file, it's an error.

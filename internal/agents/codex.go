@@ -45,7 +45,7 @@ func (c *codexAgent) Version() (string, error) {
 	return codexVersion(c.ctx)
 }
 
-func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults {
+func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instructions string, _ RunOptions) RunResults {
 	trimmedInstructions := strings.TrimSpace(instructions)
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for codex")}

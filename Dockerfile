@@ -122,6 +122,13 @@ RUN set -eux \
  && crush --version
 
 #
+# Codalotl:
+#
+ARG CODALOTL_VERSION=v0.4.0
+RUN GOBIN=/usr/local/bin go install github.com/codalotl/codalotl@${CODALOTL_VERSION} \
+ && codalotl --help >/dev/null
+
+#
 # User / Working Directory
 #
 RUN useradd -m -s /bin/bash runner \

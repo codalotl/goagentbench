@@ -45,7 +45,7 @@ func (c *crushAgent) Version() (string, error) {
 	return crushVersion(c.ctx)
 }
 
-func (c *crushAgent) Run(cwd string, llm LLMDefinition, session string, instructions string) RunResults {
+func (c *crushAgent) Run(cwd string, llm LLMDefinition, session string, instructions string, _ RunOptions) RunResults {
 	trimmedInstructions := strings.TrimSpace(instructions)
 	if trimmedInstructions == "" {
 		return RunResults{Err: errors.New("instructions are required for crush")}

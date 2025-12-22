@@ -11,8 +11,9 @@ classification:
 setup: null
 
 agent:
+  package: internal/verify
   instructions: |
-      Read SPEC.md and README.md.
+      Read @SPEC.md and @README.md, and implement this in internal/verify:
       - Rename scenario's verify.only-modify to verify.must-modify.
       - must-modify only means: for each entry, at least one working-tree change must match it. Directory entries are nonrecursive (trailing slash optional); globs are allowed.
       - Changes elsewhere are allowed unless blocked by no-modify.
