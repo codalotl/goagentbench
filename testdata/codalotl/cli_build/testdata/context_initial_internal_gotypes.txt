@@ -1,0 +1,57 @@
+<current-package>
+Module path: "/Users/jonathannovak/gab_workspace/codalotl/cli_build"
+Package relative path: "internal/gotypes"
+Absolute package path: "/Users/jonathannovak/gab_workspace/codalotl/cli_build/internal/gotypes"
+Package import path: "github.com/codalotl/codalotl/internal/gotypes"
+</current-package>
+
+<ls ok="true" cwd="/Users/jonathannovak/gab_workspace/codalotl/cli_build/internal/gotypes">
+$ ls -1p
+doc.go
+gotypes.go
+gotypes_ext_test.go
+gotypes_test.go
+testdata/
+</ls>
+
+<pkg-map type="non-tests">
+// doc.go:
+package gotypes
+// gotypes.go:
+package gotypes
+import (
+	"fmt"
+	"github.com/codalotl/codalotl/internal/gocode"
+	"go/types"
+	"os"
+	"strings"
+	"golang.org/x/tools/go/packages"
+)
+type TypeInfo struct {
+	Info types.Info
+}
+func LoadTypeInfoInto(pkg *gocode.Package, includeTests bool) (*TypeInfo, error)
+</pkg-map>
+
+<pkg-map type="tests">
+elided; limited to 25 lines for tests
+</pkg-map>
+
+<used-by>
+github.com/codalotl/codalotl/internal/renamebot
+</used-by>
+
+<diagnostics-status ok="true" message="build succeeded">
+$ go build -o /dev/null ./internal/gotypes
+</diagnostics-status>
+
+<test-status ok="true">
+$ go test ./internal/gotypes
+ok  	github.com/codalotl/codalotl/internal/gotypes	(cached)
+</test-status>
+
+<lint-status ok="true" message="no issues found">
+$ gofmt -l internal/gotypes
+</lint-status>
+
+Reminder: all file paths you send to tools **must be relative to the sandbox dir (/Users/jonathannovak/gab_workspace/codalotl/cli_build)** - NOT relative to the package dir.

@@ -1,0 +1,29 @@
+name: Building the CLI from a spec
+repo: github.com/codalotl/codalotl
+commit: 574534c16c1296c6387361855e861b20cdfdba9d
+
+classification:
+  type: build-package
+  has-spec: true
+  single-package: true
+  sees-failing-tests: false
+
+
+setup: null
+  
+
+agent:
+  package: internal/cli
+  instructions: |
+    Read the SPEC. Implement. Write tests.
+
+verify:
+  copy:
+    - from: gab_test.go
+      to: internal/cli/gab
+    - from: testdata
+      to: internal/cli/gab/testdata
+  must-modify: internal/cli
+  tests:
+    - ./internal/cli
+    - ./internal/cli/gab
