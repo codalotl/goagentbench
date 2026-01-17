@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1768664981",
+  "scenario": "self/report",
+  "agent": "codalotl",
+  "agent_version": "0.10.0",
+  "model": "gpt-5.2-high",
+  "started_at": "2026-01-17T15:49:41.744792169Z",
+  "progress": {
+    "run_id": "run_1768664981",
+    "scenario": "self/report",
+    "agent": "codalotl",
+    "agent_version": "0.10.0",
+    "model": "gpt-5.2-high",
+    "started_at": "2026-01-17T15:49:41.744792169Z",
+    "updated_at": "2026-01-17T15:55:24.028370675Z",
+    "ended_at": "2026-01-17T15:55:24.028365383Z",
+    "duration_seconds": 342.284021072,
+    "token_usage": {
+      "input": 16242,
+      "cached_input": 346308,
+      "write_cached_input": 0,
+      "output": 19877,
+      "total": 382427,
+      "cost": 0.36903694
+    }
+  },
+  "verified_at": "2026-01-17T15:55:24.807022426Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "ok  \tgithub.com/codalotl/goagentbench\t(cached)\n--- FAIL: TestReportCLI_Golden (0.28s)\n    --- FAIL: TestReportCLI_Golden/include_tokens (0.05s)\n        gab_report_test.go:65: \n            \tError Trace:\t/workspace/workspace/self/report/gab_report/gab_report_test.go:65\n            \tError:      \tNot equal: \n            \t            \texpected: \"agent,model,agent_version,unique_scenarios,count,success,partial_success_score,success_rate,partial_success_rate,avg_cost,avg_time,avg_tok_input,avg_tok_cached_input,avg_tok_write_cached_input,avg_tok_output,avg_tok_total\\nclaude,claude-opus-4.5-thinking,2.0.64,1,1,1,1,1,1,1,166.14,876,865361,56122,7772,930131\\ncodex,gpt-5.1-codex-high,0.71.0,1,1,1,1,1,1,1.35,653.07,468606,2291968,0,50900,2811474\\ncodex,gpt-5.2-high,0.71.0,6,6,6,6,1,1,0.56,647.87,48652,892800,0,23464.83,964916.83\\ncursor-agent,composer-1,2025.11.25-d5b3271,6,6,4,4,0.67,0.67,0.26,67.91,28866.33,730122.67,0,26656.33,785645.33\\nclaude,claude-sonnet-4.5-thinking,2.0.64,2,2,1,1,0.5,0.5,0.59,184.54,1076,937048.5,36206.5,7507.5,981838.5\\ncrush,grok-code-fast-1,0.23.0,6,6,3,3,0.5,0.5,0.84,285.22,594.83,0,0,48930.17,49525\\ncrush,grok-4-1-fast-reasoning,0.23.0,4,4,0,0,0,0,0.07,128.72,43885,0,0,28442.5,72327.5\\n\"\n            \t            \tactual  : \"agent,model,agent_version,unique_scenarios,count,success,partial_success_score,success_rate,partial_success_rate,avg_cost,avg_time,avg_tok_input,avg_tok_cached_input,avg_tok_write_cached_input,avg_tok_output,avg_tok_total\\nclaude,claude-opus-4.5-thinking,2.0.64,1,1,1,1,1,1,1,166.14,876,865361,56122,7772,930131\\ncodex,gpt-5.1-codex-high,0.71.0,1,1,1,1,1,1,1.35,653.07,468606,2291968,0,50900,2811474\\ncodex,gpt-5.2-high,0.71.0,6,6,6,6,1,1,0.56,647.87,48652,892800,0,23464.83,964916.83\\ncursor-agent,composer-1,2025.11.25-d5b3271,6,6,4,4,0.67,0.67,0.26,67.91,28866.33,730122.67,0,26656.33,772367.33\\nclaude,claude-sonnet-4.5-thinking,2.0.64,2,2,1,1,0.5,0.5,0.59,184.54,1076,937048.5,36206.5,7507.5,981838.5\\ncrush,grok-code-fast-1,0.23.0,6,6,3,3,0.5,0.5,0.84,285.22,594.83,0,0,48930.17,49525\\ncrush,grok-4-1-fast-reasoning,0.23.0,4,4,0,0,0,0,0.07,128.72,43885,0,0,28442.5,72327.5\\n\"\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -4,3 +4,3 @@\n            \t            \t codex,gpt-5.2-high,0.71.0,6,6,6,6,1,1,0.56,647.87,48652,892800,0,23464.83,964916.83\n            \t            \t-cursor-agent,composer-1,2025.11.25-d5b3271,6,6,4,4,0.67,0.67,0.26,67.91,28866.33,730122.67,0,26656.33,785645.33\n            \t            \t+cursor-agent,composer-1,2025.11.25-d5b3271,6,6,4,4,0.67,0.67,0.26,67.91,28866.33,730122.67,0,26656.33,772367.33\n            \t            \t claude,claude-sonnet-4.5-thinking,2.0.64,2,2,1,1,0.5,0.5,0.59,184.54,1076,937048.5,36206.5,7507.5,981838.5\n            \tTest:       \tTestReportCLI_Golden/include_tokens\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/gab_report\t0.283s\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/cli\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/setup\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/verify/gab\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}
