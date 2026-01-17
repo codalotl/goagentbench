@@ -12,7 +12,7 @@
 # - 2025/12/09: the `claude` agent uses multiple models under the hood. The "main" one is specified, but the explore agent uses haiku. Token usage for claude is just the main model, BUT cost is all models.
 agents:
   - name: codex
-    version: 0.71.0
+    version: 0.81.0
     supports-llms:
       - gpt-5.2-high
       - gpt-5.1-codex-high
@@ -37,6 +37,6 @@ agents:
       - grok-4-1-fast-reasoning
       - gpt-5.1-codex-high
   - name: codalotl
-    version: 0.4.0
+    version: 0.10.0
     supports-llms:
       - gpt-5.2-high

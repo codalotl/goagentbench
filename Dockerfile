@@ -50,11 +50,12 @@ RUN curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o
 ENV GOPATH=/home/runner/go
 ENV PATH=${GOPATH}/bin:/usr/local/go/bin:${PATH}
 RUN go install golang.org/x/tools/gopls@latest
+RUN go install golang.org/x/tools/cmd/goimports@latest
 
 #
 # Codex CLI:
 #
-ARG CODEX_VERSION=0.71.0
+ARG CODEX_VERSION=0.81.0
 RUN case "${TARGETARCH}" in \
       amd64) CODEX_ARCH="x86_64-unknown-linux-gnu" ;; \
       arm64) CODEX_ARCH="aarch64-unknown-linux-gnu" ;; \
@@ -124,9 +125,10 @@ RUN set -eux \
 #
 # Codalotl:
 #
-ARG CODALOTL_VERSION=v0.4.0
+ARG CODALOTL_VERSION=v0.10.0
 RUN GOBIN=/usr/local/bin go install github.com/codalotl/codalotl@${CODALOTL_VERSION} \
  && codalotl --help >/dev/null
+ENV REPORT_IDEAL_CACHING=1
 
 #
 # User / Working Directory
