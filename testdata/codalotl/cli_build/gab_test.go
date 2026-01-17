@@ -62,8 +62,10 @@ func requireFixtureMatch(t *testing.T, relPath string, got string) {
 
 	fixturePath := filepath.Join(packageDir(t), relPath)
 
+	got = normalizeContextFixtureText(t, got)
+
 	b, err := os.ReadFile(fixturePath)
-	if err == nil && got == string(b) {
+	if err == nil && strings.TrimSpace(got) == strings.TrimSpace(string(b)) {
 		return
 	}
 	if !errors.Is(err, os.ErrNotExist) {
@@ -85,6 +87,30 @@ func requireFixtureMatch(t *testing.T, relPath string, got string) {
 		t.Fatalf("fixture %q did not match current output; updated it. Re-run tests.", fixturePath)
 	}
 	t.Fatalf("fixture %q did not exist; recorded current output. Re-run tests.", fixturePath)
+}
+
+func normalizeContextFixtureText(t *testing.T, s string) string {
+	t.Helper()
+
+	// Some context outputs embed absolute paths (module root, package absolute path, etc.).
+	// Make fixtures portable by replacing the module root with a stable placeholder.
+	modRoot := moduleRootDir(t)
+
+	roots := []string{modRoot, filepath.ToSlash(modRoot)}
+	if evalRoot, err := filepath.EvalSymlinks(modRoot); err == nil {
+		roots = append(roots, evalRoot, filepath.ToSlash(evalRoot))
+	}
+
+	for _, r := range roots {
+		if r == "" {
+			continue
+		}
+		s = strings.ReplaceAll(s, r, "$ROOT")
+	}
+
+	// After root replacement, normalize path separators so `$ROOT/internal/...` matches on Windows too.
+	s = strings.ReplaceAll(s, "\\", "/")
+	return s
 }
 
 func moduleRootDir(t *testing.T) string {

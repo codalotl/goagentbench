@@ -15,7 +15,7 @@ setup: null
 agent:
   package: internal/cli
   instructions: |
-    Read the SPEC. Implement. Write tests.
+    In internal/cli, read the SPEC. Implement. Write tests.
 
 verify:
   copy:

@@ -1,11 +1,11 @@
 <current-package>
-Module path: "/Users/jonathannovak/gab_workspace/codalotl/cli_build"
+Module path: "$ROOT"
 Package relative path: "internal/gotypes"
-Absolute package path: "/Users/jonathannovak/gab_workspace/codalotl/cli_build/internal/gotypes"
+Absolute package path: "$ROOT/internal/gotypes"
 Package import path: "github.com/codalotl/codalotl/internal/gotypes"
 </current-package>
 
-<ls ok="true" cwd="/Users/jonathannovak/gab_workspace/codalotl/cli_build/internal/gotypes">
+<ls ok="true" cwd="$ROOT/internal/gotypes">
 $ ls -1p
 doc.go
 gotypes.go
@@ -54,4 +54,4 @@ ok  	github.com/codalotl/codalotl/internal/gotypes	(cached)
 $ gofmt -l internal/gotypes
 </lint-status>
 
-Reminder: all file paths you send to tools **must be relative to the sandbox dir (/Users/jonathannovak/gab_workspace/codalotl/cli_build)** - NOT relative to the package dir.
+Reminder: all file paths you send to tools **must be relative to the sandbox dir ($ROOT)** - NOT relative to the package dir.
