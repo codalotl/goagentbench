@@ -96,6 +96,11 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 		session = strings.TrimSpace(rc.Session)
 	}
 
+	durationSeconds := ended.Sub(started).Seconds()
+	if results.ScaleDuration > 0 {
+		durationSeconds *= results.ScaleDuration
+	}
+
 	progress := &types.RunProgress{
 		RunID:           "",
 		Scenario:        rc.ScenarioName,
@@ -106,7 +111,7 @@ func runResultsToProgress(modelName string, rc RunContext, started time.Time, en
 		UpdatedAt:       ended,
 		EndedAt:         &ended,
 		Session:         session,
-		DurationSeconds: ended.Sub(started).Seconds(),
+		DurationSeconds: durationSeconds,
 		TokenUsage: types.TokenUsage{
 			Input:            results.InputTokens,
 			CachedInput:      results.CachedInputTokens,

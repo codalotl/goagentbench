@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -283,7 +284,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 			Options: agents.RunOptions{
 				Package: strings.TrimSpace(sc.Agent.Package),
 			},
-			Printer:      printer,
+			Printer: printer,
 		})
 		if runErr != nil {
 			_ = printer.Appf("Agent run error: %v", runErr)
@@ -314,6 +315,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 
 		now = time.Now()
 		ended := lastEnded
+		durationScale := durationScaleFromProgress(turnProgress)
 		progress := &types.RunProgress{
 			RunID:           runID,
 			Scenario:        scenarioName,
@@ -324,7 +326,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 			UpdatedAt:       now,
 			EndedAt:         &ended,
 			Session:         session,
-			DurationSeconds: ended.Sub(start.StartedAt).Seconds(),
+			DurationSeconds: ended.Sub(start.StartedAt).Seconds() * durationScale,
 			TokenUsage:      aggTokens,
 			Transcripts:     transcripts,
 			Notes:           lastNotes,
@@ -383,8 +385,24 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 	return printer.Appf("Run complete. Start: %s, progress: %s", runStartPath, runProgressPath)
 }
 
+func durationScaleFromProgress(progress *types.RunProgress) float64 {
+	if progress == nil || progress.EndedAt == nil || progress.DurationSeconds <= 0 {
+		return 1
+	}
+	unscaledSeconds := progress.EndedAt.Sub(progress.StartedAt).Seconds()
+	if unscaledSeconds <= 0 {
+		return 1
+	}
+	scale := progress.DurationSeconds / unscaledSeconds
+	if math.IsNaN(scale) || math.IsInf(scale, 0) || scale <= 0 {
+		return 1
+	}
+	return scale
+}
+
 func newVerifyCmd(workspacePath string) *cobra.Command {
 	var onlyReport bool
+	var copyOnly bool
 	cmd := silenceUsageAndErrors(&cobra.Command{
 		Use:   "verify <scenario>",
 		Short: "Verify an agent run for a scenario",
@@ -407,6 +425,7 @@ func newVerifyCmd(workspacePath string) *cobra.Command {
 				WorkspacePath: workspacePath,
 				RootPath:      rootDir,
 				OnlyReport:    onlyReport,
+				CopyOnly:      copyOnly,
 				Printer:       printer,
 			}
 			_, err = verify.Run(ctx, opts, sc)
@@ -414,6 +433,7 @@ func newVerifyCmd(workspacePath string) *cobra.Command {
 		},
 	})
 	cmd.Flags().BoolVar(&onlyReport, "only-report", false, "print report without writing results file")
+	cmd.Flags().BoolVar(&copyOnly, "copy-only", false, "apply verify.copy steps only (no tests; no cleanup)")
 	return cmd
 }
 

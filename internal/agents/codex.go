@@ -21,6 +21,9 @@ type codexAgent struct {
 }
 
 const (
+	// Determined empirically on 2026/01/15, by comparing durations from several runs with/without priority processing.
+	codexChatGPTDurationScale = 1.8
+
 	codexLegacyInputCostPerToken       = 1.25 / 1_000_000
 	codexLegacyCachedInputCostPerToken = 0.125 / 1_000_000
 	codexLegacyOutputCostPerToken      = 10.0 / 1_000_000
@@ -71,6 +74,9 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		args = append(args, "--model", llm.Model)
 	}
 	args = append(args, "--", trimmedInstructions)
+
+	scaleDuration := codexScaleDuration(c.ctx, cwd)
+
 	var outputBytes []byte
 	var err error
 	if c.printer != nil {
@@ -93,6 +99,7 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 		CachedInputTokens: usage.cachedTokens,
 		OutputTokens:      usage.outputTokens,
 		Cost:              cost,
+		ScaleDuration:     scaleDuration,
 		Session:           session,
 	}
 	if session == "" && threadID != "" {
@@ -103,6 +110,25 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	}
 
 	return result
+}
+
+func codexScaleDuration(ctx context.Context, cwd string) float64 {
+	cmd := exec.CommandContext(ctx, "codex", "login", "status")
+	cmd.Dir = cwd
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return 0
+	}
+	return codexScaleDurationFromLoginStatusOutput(string(out))
+}
+
+func codexScaleDurationFromLoginStatusOutput(output string) float64 {
+	// When Codex is logged in via ChatGPT, it can execute slower than wall-clock measurements suggest
+	// for the same token usage; scale recorded DurationSeconds to better match expected runtime.
+	if strings.Contains(output, "Logged in using ChatGPT") {
+		return codexChatGPTDurationScale
+	}
+	return 0
 }
 
 type codexUsage struct {

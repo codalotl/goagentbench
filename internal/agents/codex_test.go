@@ -58,3 +58,9 @@ func TestCalculateCodexCostZero(t *testing.T) {
 	cost := calculateCodexCost("gpt-5.1-codex", 0, 0, 0)
 	require.Zero(t, cost)
 }
+
+func TestCodexScaleDurationFromLoginStatusOutput(t *testing.T) {
+	require.InDelta(t, 1.8, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n"), 1e-9)
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Not logged in\n"))
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput(""))
+}
