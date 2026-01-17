@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1768604565",
+  "scenario": "self/patch",
+  "agent": "codex",
+  "agent_version": "0.81.0",
+  "model": "gpt-5.2-high",
+  "started_at": "2026-01-16T23:02:45.638617388Z",
+  "progress": {
+    "run_id": "run_1768604565",
+    "scenario": "self/patch",
+    "agent": "codex",
+    "agent_version": "0.81.0",
+    "model": "gpt-5.2-high",
+    "started_at": "2026-01-16T23:02:45.638617388Z",
+    "updated_at": "2026-01-16T23:10:05.466440342Z",
+    "session": "019bc90c-00e3-77d2-97c0-371c7ffb66df",
+    "ended_at": "2026-01-16T23:10:05.4664383Z",
+    "duration_seconds": 791.6735315124,
+    "token_usage": {
+      "input": 111915,
+      "cached_input": 1192448,
+      "write_cached_input": 0,
+      "output": 20408,
+      "total": 1324771,
+      "cost": 0.69620389
+    }
+  },
+  "verified_at": "2026-01-16T23:10:06.114495384Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "ok  \tgithub.com/codalotl/goagentbench\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n--- FAIL: TestRun_GABAppliesPatches (0.05s)\n    --- FAIL: TestRun_GABAppliesPatches/single_patch (0.01s)\n        gab_test.go:180: \n            \tError Trace:\t/workspace/workspace/self/patch/internal/setup/gab_test.go:180\n            \tError:      \tReceived unexpected error:\n            \t            \tpatch file does not exist: single.patch: stat /tmp/TestRun_GABAppliesPatchessingle_patch1533925709/002/workspace/setup/patch_case_single_patch/single.patch: no such file or directory\n            \tTest:       \tTestRun_GABAppliesPatches/single_patch\n    --- FAIL: TestRun_GABAppliesPatches/multiple_patches (0.01s)\n        gab_test.go:180: \n            \tError Trace:\t/workspace/workspace/self/patch/internal/setup/gab_test.go:180\n            \tError:      \tReceived unexpected error:\n            \t            \tpatch file does not exist: single.patch: stat /tmp/TestRun_GABAppliesPatchesmultiple_patches77483808/002/workspace/setup/patch_case_multiple_patches/single.patch: no such file or directory\n            \tTest:       \tTestRun_GABAppliesPatches/multiple_patches\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/setup\t0.082s\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t0.046s\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

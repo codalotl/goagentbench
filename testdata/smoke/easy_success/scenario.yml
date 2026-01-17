@@ -1,6 +1,6 @@
 name: Test that an agent is really likely to succeed in quickly.
 repo: github.com/codalotl/goagentbench
-commit: 52e5065bb8038050577dee7d3be07d9de92b3862
+commit: ef870776d6eb5a24690accf00617f8dad7fb0d48
 
 classification:
   type: build-package
@@ -31,8 +31,9 @@ agent:
 verify:
   copy:
     - from: gab_sorted_partial_test.go 
-      to: internal/sorting
+      to: internal/sorting/gab
   must-modify:
     - internal/sorting
   tests:
     - ./internal/sorting
+    - ./internal/sorting/gab

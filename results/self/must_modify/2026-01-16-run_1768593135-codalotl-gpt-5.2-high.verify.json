@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1768593135",
+  "scenario": "self/must_modify",
+  "agent": "codalotl",
+  "agent_version": "0.9.0",
+  "model": "gpt-5.2-high",
+  "started_at": "2026-01-16T19:52:15.16317209Z",
+  "progress": {
+    "run_id": "run_1768593135",
+    "scenario": "self/must_modify",
+    "agent": "codalotl",
+    "agent_version": "0.9.0",
+    "model": "gpt-5.2-high",
+    "started_at": "2026-01-16T19:52:15.16317209Z",
+    "updated_at": "2026-01-16T20:02:01.23941625Z",
+    "ended_at": "2026-01-16T20:02:01.23941325Z",
+    "duration_seconds": 586.051869767,
+    "token_usage": {
+      "input": 48406,
+      "cached_input": 496822,
+      "write_cached_input": 0,
+      "output": 28288,
+      "total": 573516,
+      "cost": 0.5701704599999999
+    }
+  },
+  "verified_at": "2026-01-16T20:02:01.828718251Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "ok  \tgithub.com/codalotl/goagentbench\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/agents\t(cached)\nok  \tgithub.com/codalotl/goagentbench/internal/ansi\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/output\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t(cached)\n--- FAIL: TestRunEnforcesMustModifyRules (0.08s)\n    --- FAIL: TestRunEnforcesMustModifyRules/passesWithMustModifySatisfiedAndOtherChangesAllowed (0.01s)\n        gab_test.go:158: \n            \tError Trace:\t/workspace/workspace/self/must_modify/internal/verify/gab/gab_test.go:158\n            \tError:      \tShould be empty, but was [{verify.must-modify true  }]\n            \tTest:       \tTestRunEnforcesMustModifyRules/passesWithMustModifySatisfiedAndOtherChangesAllowed\n    --- FAIL: TestRunEnforcesMustModifyRules/passesWhenMustModifySatisfiedByUntrackedFile (0.01s)\n        gab_test.go:158: \n            \tError Trace:\t/workspace/workspace/self/must_modify/internal/verify/gab/gab_test.go:158\n            \tError:      \tShould be empty, but was [{verify.must-modify true  }]\n            \tTest:       \tTestRunEnforcesMustModifyRules/passesWhenMustModifySatisfiedByUntrackedFile\n    --- FAIL: TestRunEnforcesMustModifyRules/passesWhenMustModifySatisfiedByDeletion (0.01s)\n        gab_test.go:158: \n            \tError Trace:\t/workspace/workspace/self/must_modify/internal/verify/gab/gab_test.go:158\n            \tError:      \tShould be empty, but was [{verify.must-modify true  }]\n            \tTest:       \tTestRunEnforcesMustModifyRules/passesWhenMustModifySatisfiedByDeletion\n    --- FAIL: TestRunEnforcesMustModifyRules/passesWhenMustModifyEntryHasTrailingSlash (0.01s)\n        gab_test.go:158: \n            \tError Trace:\t/workspace/workspace/self/must_modify/internal/verify/gab/gab_test.go:158\n            \tError:      \tShould be empty, but was [{verify.must-modify true  }]\n            \tTest:       \tTestRunEnforcesMustModifyRules/passesWhenMustModifyEntryHasTrailingSlash\n    --- FAIL: TestRunEnforcesMustModifyRules/passesWhenMustModifyEntryIsGlob (0.01s)\n        gab_test.go:158: \n            \tError Trace:\t/workspace/workspace/self/must_modify/internal/verify/gab/gab_test.go:158\n            \tError:      \tShould be empty, but was [{verify.must-modify true  }]\n            \tTest:       \tTestRunEnforcesMustModifyRules/passesWhenMustModifyEntryIsGlob\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/verify/gab\t0.078s\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

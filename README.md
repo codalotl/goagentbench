@@ -12,21 +12,23 @@ Benchmark AI coding agents and LLMs on Go-only coding tasks.
 <!-- BEGIN_RESULTS -->
 | Agent | Model | Success | Avg Cost | Avg Time |
 | --- | --- | --- | --- | --- |
-| codalotl | gpt-5.2-high | 100% | $0.45 | 7m 50s |
-| codex | gpt-5.2-high | 100% | $0.56 | 10m 31s |
-| codex | gpt-5.1-codex-high | 86% | $1.39 | 10m 37s |
+| codalotl | gpt-5.2-high | 83% | $0.38 | 7m 7s |
+| codex | gpt-5.2-high | 75% | $0.65 | 15m 33s |
 | cursor-agent | composer-1 | 57% | $0.27 | 1m 6s |
-| claude | claude-opus-4.5-thinking | 43% | $1.47 | 4m 23s |
+| claude | claude-opus-4.5-thinking | 50% | $1.62 | 4m 18s |
 | crush | grok-code-fast-1 | 43% | $0.94 | 4m 57s |
-| claude | claude-sonnet-4.5-thinking | 14% | $0.94 | 4m 45s |
+| claude | claude-sonnet-4.5-thinking | 33% | $0.73 | 3m 29s |
 | crush | grok-4-1-fast-reasoning | 0% | $0.07 | 2m 9s |
 
-Results as of 2025-12-22. See [result_summaries/summary_2025-12-22_12-09-24](result_summaries/summary_2025-12-22_12-09-24).
+Results as of 2026-01-17. See [result_summaries/summary_2026-01-17_11-48-24](result_summaries/summary_2026-01-17_11-48-24).
 <!-- END_RESULTS -->
 
 NOTES:
 - I tested grok with crush because I needed **some** agent to test it with, and crush seemed reasonable and able to be automated.
 - grok-4-1-fast-reasoning is unusable as an agent (it will do things like apply patch, it fails to apply, and then it declares itself successful and ends its turn).
+- codex was tested with ChatGPT Pro (priority service tier), and its times were normalized to non-priority times empirically.
+- codalotl detects provider cache failures and compensates for more consistent token breakdowns (a random full cache miss mid-convo changes pricing dramatically).
+- In general, be aware there's a significant variance in success rates and token usages. These results are directional.
 
 ## Concepts and Repo Structure
 
@@ -59,6 +61,7 @@ Common subcommands (instead of `exec`) are:
 - `go run . setup <scenario>`
 - `go run . run-agent --agent=<agent> [--model=<model>] <scenario>`
 - `go run . verify <scenario>`
+- `go run . verify --copy-only <scenario>` (debug `verify.copy` tests without cleanup)
 
 Useful environment variables:
 - `GOAGENTBENCH_WORKSPACE`: override `workspace/`

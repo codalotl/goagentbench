@@ -79,6 +79,8 @@ If the `--only-report` option is used, it only prints out the summary report, an
 
 Calling `verify` with or without the `--only-report` flag should be idempotent.
 
+If the `--copy-only` option is used, `verify` only applies `verify.copy` steps to the workspace and then exits (no tests are run, and no copied files are removed). This option does not write a verification report.
+
 ### exec
 
 `goagentbench exec --agent=codex [--model=gpt-5.1-codex-max-medium] tui_build`:
@@ -232,6 +234,7 @@ verify:
 
   # copy: an array of from/to pairs. Can be used to copy test files the agent didn't see when running.
   # Any copied file is removed when verify is finished.
+  # If you want to debug the copied tests after a failure, run `goagentbench verify --copy-only <scenario>`.
   # NOTE: copy does not play well with allow-multiple-turns-on-failed-verify: true, since we'd be sharing test failures
   # that the agent can't see.
   copy:

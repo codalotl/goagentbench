@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1768603224",
+  "scenario": "self/parse_test_file",
+  "agent": "codex",
+  "agent_version": "0.81.0",
+  "model": "gpt-5.2-high",
+  "started_at": "2026-01-16T22:40:24.778656712Z",
+  "progress": {
+    "run_id": "run_1768603224",
+    "scenario": "self/parse_test_file",
+    "agent": "codex",
+    "agent_version": "0.81.0",
+    "model": "gpt-5.2-high",
+    "started_at": "2026-01-16T22:40:24.778656712Z",
+    "updated_at": "2026-01-16T22:50:04.333423466Z",
+    "session": "019bc8f7-8b34-7011-9ad0-40b0cbee7047",
+    "ended_at": "2026-01-16T22:50:04.333422091Z",
+    "duration_seconds": 1043.1916498008,
+    "token_usage": {
+      "input": 90995,
+      "cached_input": 940672,
+      "write_cached_input": 0,
+      "output": 29812,
+      "total": 1061479,
+      "cost": 0.74593021
+    }
+  },
+  "verified_at": "2026-01-16T22:50:04.964060383Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Valid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Valid/package (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"some/pkg\", Run:\"\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./some/pkg\", Run:\"\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -1,3 +1,3 @@\n            \t            \t (scenario.TestTarget) {\n            \t            \t- Target: (string) (len=8) \"some/pkg\",\n            \t            \t+ Target: (string) (len=10) \"./some/pkg\",\n            \t            \t  Run: (string) \"\"\n            \tTest:       \tTestGABScenarioTestTargets_Valid/package\n    --- FAIL: TestGABScenarioTestTargets_Valid/glob (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"internal/app/golden_*_test.go\", Run:\"\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./internal/app/golden_*_test.go\", Run:\"\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -1,3 +1,3 @@\n            \t            \t (scenario.TestTarget) {\n            \t            \t- Target: (string) (len=29) \"internal/app/golden_*_test.go\",\n            \t            \t+ Target: (string) (len=31) \"./internal/app/golden_*_test.go\",\n            \t            \t  Run: (string) \"\"\n            \tTest:       \tTestGABScenarioTestTargets_Valid/glob\n    --- FAIL: TestGABScenarioTestTargets_Valid/file (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"internal/app/some_test.go\", Run:\"\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./internal/app/some_test.go\", Run:\"\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -1,3 +1,3 @@\n            \t            \t (scenario.TestTarget) {\n            \t            \t- Target: (string) (len=25) \"internal/app/some_test.go\",\n            \t            \t+ Target: (string) (len=27) \"./internal/app/some_test.go\",\n            \t            \t  Run: (string) \"\"\n            \tTest:       \tTestGABScenarioTestTargets_Valid/file\n--- FAIL: TestGABScenarioPartialTestTargets_Valid (0.00s)\n    gab_scenario_test.go:88: \n        \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:88\n        \tError:      \tNot equal: \n        \t            \texpected: []scenario.TestTarget{scenario.TestTarget{Target:\"internal/app/some_test.go\", Run:\"\"}}\n        \t            \tactual  : []scenario.TestTarget{scenario.TestTarget{Target:\"./internal/app/some_test.go\", Run:\"\"}}\n        \t            \t\n        \t            \tDiff:\n        \t            \t--- Expected\n        \t            \t+++ Actual\n        \t            \t@@ -2,3 +2,3 @@\n        \t            \t  (scenario.TestTarget) {\n        \t            \t-  Target: (string) (len=25) \"internal/app/some_test.go\",\n        \t            \t+  Target: (string) (len=27) \"./internal/app/some_test.go\",\n        \t            \t   Run: (string) \"\"\n        \tTest:       \tTestGABScenarioPartialTestTargets_Valid\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

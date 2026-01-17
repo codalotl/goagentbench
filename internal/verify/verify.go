@@ -28,6 +28,7 @@ type Options struct {
 	WorkspacePath string
 	RootPath      string
 	OnlyReport    bool
+	CopyOnly      bool
 	Printer       *output.Printer
 }
 
@@ -52,6 +53,25 @@ func Run(ctx context.Context, opts Options, sc *scenario.Scenario) (*Result, err
 	if _, err := os.Stat(workspaceDir); err != nil {
 		return nil, fmt.Errorf("workspace for scenario not found at %s", workspaceDir)
 	}
+
+	if opts.CopyOnly {
+		_, err := applyVerifyCopies(sc, scenarioDir, workspaceDir)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(sc.Verify.Copy) == 0 {
+			if err := printer.Appf("Copy-only mode: no verify.copy steps for %s (nothing to copy).", opts.ScenarioName); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := printer.Appf("Copy-only mode: applied %d verify.copy step(s) into %s (no cleanup; no tests run).", len(sc.Verify.Copy), workspaceDir); err != nil {
+				return nil, err
+			}
+		}
+		return &Result{Report: nil}, nil
+	}
+
 	runStart, _ := readRunStart(filepath.Join(workspaceDir, ".run-start.json"))
 	progress, _ := readRunProgress(filepath.Join(workspaceDir, ".run-progress.json"))
 	if progress != nil && progress.RunID == "" && runStart != nil {

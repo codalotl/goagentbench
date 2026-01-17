@@ -1,0 +1,1 @@
+goagentbench report --limit=2 --publish

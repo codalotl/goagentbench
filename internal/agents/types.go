@@ -17,6 +17,12 @@ type RunResults struct {
 	OutputTokens           int     // number of reasoning/output tokens
 	Cost                   float64 // total cost for the run (if available)
 
+	// ScaleDuration, when >0, scales the wall-clock DurationSeconds recorded in RunProgress.
+	// A value of 0 means "unscaled" (use the measured elapsed time).
+	// The purpose of this is to, for example, adjust ChatGPT Pro's Priority Processing back to "apples-to-apples" times.
+	// A better solution might be to just not use ChatGPT Pro's auth, but that would cost more money/time to run.
+	ScaleDuration float64
+
 	// If an agent supports it, this is the session ID (or resume ID). We can pass this ID to future Run calls to continue.
 	Session string
 
