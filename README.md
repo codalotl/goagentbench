@@ -27,6 +27,9 @@ Results as of 2025-12-22. See [result_summaries/summary_2025-12-22_12-09-24](res
 NOTES:
 - I tested grok with crush because I needed **some** agent to test it with, and crush seemed reasonable and able to be automated.
 - grok-4-1-fast-reasoning is unusable as an agent (it will do things like apply patch, it fails to apply, and then it declares itself successful and ends its turn).
+- codex was tested with ChatGPT Pro (priority service tier), and its times were normalized to non-priority times empirically.
+- codalotl detects provider cache failures and compensates for more consistent token breakdowns (a random full cache miss mid-convo changes pricing dramatically).
+- In general, be aware there's a significant variance in success rates and token usages. These results are directional.
 
 ## Concepts and Repo Structure
 
