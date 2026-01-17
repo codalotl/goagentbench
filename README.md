@@ -59,6 +59,7 @@ Common subcommands (instead of `exec`) are:
 - `go run . setup <scenario>`
 - `go run . run-agent --agent=<agent> [--model=<model>] <scenario>`
 - `go run . verify <scenario>`
+- `go run . verify --copy-only <scenario>` (debug `verify.copy` tests without cleanup)
 
 Useful environment variables:
 - `GOAGENTBENCH_WORKSPACE`: override `workspace/`
