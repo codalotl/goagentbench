@@ -152,6 +152,20 @@ func parseCodalotlVersion(output string) string {
 	if output == "" {
 		return ""
 	}
+	// Some codalotl installs emit upgrade notices before the actual version line.
+	// When output is multiline, use the last non-empty line as the version source.
+	if strings.ContainsAny(output, "\r\n") {
+		normalized := strings.ReplaceAll(output, "\r\n", "\n")
+		normalized = strings.ReplaceAll(normalized, "\r", "\n")
+		lines := strings.Split(normalized, "\n")
+		for i := len(lines) - 1; i >= 0; i-- {
+			line := strings.TrimSpace(lines[i])
+			if line != "" {
+				output = line
+				break
+			}
+		}
+	}
 	if match := codalotlVersionPattern.FindStringSubmatch(output); len(match) > 1 {
 		return match[1]
 	}
