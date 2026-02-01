@@ -46,6 +46,22 @@ func TestParseCodalotlVersion(t *testing.T) {
 	require.Equal(t, "0.12.3", version)
 }
 
+func TestParseCodalotlVersion_MultilineUsesLastNonEmptyLine(t *testing.T) {
+	version := parseCodalotlVersion(strings.Join([]string{
+		"NOTICE: A new version is available. Run: brew upgrade codalotl",
+		"codalotl version v0.12.3",
+		"",
+	}, "\n"))
+	require.Equal(t, "0.12.3", version)
+
+	version = parseCodalotlVersion(strings.Join([]string{
+		"codalotl version v0.1.0",
+		"NOTICE: this is an old pinned shim",
+		"codalotl version v0.12.3",
+	}, "\n"))
+	require.Equal(t, "0.12.3", version)
+}
+
 func TestCodalotlExecArgs_IncludesPackage(t *testing.T) {
 	args := codalotlExecArgs("gpt-5", "do it", RunOptions{Package: "internal/cli"})
 	require.Contains(t, args, "--package=internal/cli")
