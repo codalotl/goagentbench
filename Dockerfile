@@ -125,7 +125,7 @@ RUN set -eux \
 #
 # Codalotl:
 #
-ARG CODALOTL_VERSION=v0.10.0
+ARG CODALOTL_VERSION=v0.11.0
 RUN GOBIN=/usr/local/bin go install github.com/codalotl/codalotl@${CODALOTL_VERSION} \
  && codalotl --help >/dev/null
 ENV REPORT_IDEAL_CACHING=1
