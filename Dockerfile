@@ -55,7 +55,7 @@ RUN go install golang.org/x/tools/cmd/goimports@latest
 #
 # Codex CLI:
 #
-ARG CODEX_VERSION=0.81.0
+ARG CODEX_VERSION=0.111.0
 RUN case "${TARGETARCH}" in \
       amd64) CODEX_ARCH="x86_64-unknown-linux-gnu" ;; \
       arm64) CODEX_ARCH="aarch64-unknown-linux-gnu" ;; \
@@ -125,7 +125,7 @@ RUN set -eux \
 #
 # Codalotl:
 #
-ARG CODALOTL_VERSION=v0.11.0
+ARG CODALOTL_VERSION=v0.15.1
 RUN GOBIN=/usr/local/bin go install github.com/codalotl/codalotl@${CODALOTL_VERSION} \
  && codalotl --help >/dev/null
 ENV REPORT_IDEAL_CACHING=1

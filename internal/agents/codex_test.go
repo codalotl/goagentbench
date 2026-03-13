@@ -34,28 +34,35 @@ func TestParseCodexOutput_RawWhenNonJSON(t *testing.T) {
 	require.Zero(t, usage.outputTokens)
 }
 
-func TestCalculateCodexCost(t *testing.T) {
-	nonCached := 2_000_000
-	cached := 1_000_000
-	output := 500_000
+func TestCalculateLLMCost_UsesYAMLPricing(t *testing.T) {
+	inputCost := 2.5
+	cachedInputCost := 0.25
+	cacheWriteInputCost := 6.25
+	outputCost := 15.0
+	llm := LLMDefinition{
+		Name:  "gpt-5.4-high",
+		Model: "gpt-5.4",
+		Costs: &LLMCostDefinition{
+			InputCost:           &inputCost,
+			CachedInputCost:     &cachedInputCost,
+			CacheWriteInputCost: &cacheWriteInputCost,
+			OutputCost:          &outputCost,
+		},
+	}
 
-	cost := calculateCodexCost("gpt-5.1-codex", nonCached, cached, output)
+	cost := calculateLLMCost(llm, 2_000_000, 1_000_000, 500_000, 500_000)
 
-	require.InDelta(t, 7.43, cost, 1e-6)
+	require.InDelta(t, 15.875, cost, 1e-6)
 }
 
-func TestCalculateCodexCost_GPT52(t *testing.T) {
-	nonCached := 2_000_000
-	cached := 1_000_000
-	output := 500_000
+func TestCalculateLLMCost_RequiresYAMLPricing(t *testing.T) {
+	llm := LLMDefinition{
+		Name:  "gpt-5.2-high",
+		Model: "gpt-5.2",
+	}
 
-	cost := calculateCodexCost("gpt-5.2", nonCached, cached, output)
+	cost := calculateLLMCost(llm, 2_000_000, 1_000_000, 500_000, 500_000)
 
-	require.InDelta(t, 10.68, cost, 1e-6)
-}
-
-func TestCalculateCodexCostZero(t *testing.T) {
-	cost := calculateCodexCost("gpt-5.1-codex", 0, 0, 0)
 	require.Zero(t, cost)
 }
 

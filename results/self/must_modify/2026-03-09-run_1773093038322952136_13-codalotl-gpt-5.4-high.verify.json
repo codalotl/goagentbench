@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1773093038322952136_13",
+  "scenario": "self/must_modify",
+  "agent": "codalotl",
+  "agent_version": "0.13.0",
+  "model": "gpt-5.4-high",
+  "started_at": "2026-03-09T21:50:38.322954178Z",
+  "progress": {
+    "run_id": "run_1773093038322952136_13",
+    "scenario": "self/must_modify",
+    "agent": "codalotl",
+    "agent_version": "0.13.0",
+    "model": "gpt-5.4-high",
+    "started_at": "2026-03-09T21:50:38.322954178Z",
+    "updated_at": "2026-03-09T21:55:25.415717505Z",
+    "ended_at": "2026-03-09T21:55:25.415710172Z",
+    "duration_seconds": 287.09132438,
+    "token_usage": {
+      "input": 4585,
+      "cached_input": 73014,
+      "write_cached_input": 0,
+      "output": 22453,
+      "total": 100052,
+      "cost": 0.366511
+    }
+  },
+  "verified_at": "2026-03-09T21:55:25.895852589Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "verify.modification-rules",
+      "passed": false,
+      "error": "internal/scenario in verify.must-modify was not modified"
+    }
+  ]
+}

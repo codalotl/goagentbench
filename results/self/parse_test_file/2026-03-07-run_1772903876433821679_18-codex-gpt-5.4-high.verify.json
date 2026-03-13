@@ -1,0 +1,38 @@
+{
+  "run_id": "run_1772903876433821679_18",
+  "scenario": "self/parse_test_file",
+  "agent": "codex",
+  "agent_version": "0.111.0",
+  "model": "gpt-5.4-high",
+  "started_at": "2026-03-07T17:17:56.433823179Z",
+  "progress": {
+    "run_id": "run_1772903876433821679_18",
+    "scenario": "self/parse_test_file",
+    "agent": "codex",
+    "agent_version": "0.111.0",
+    "model": "gpt-5.4-high",
+    "started_at": "2026-03-07T17:17:56.433823179Z",
+    "updated_at": "2026-03-07T17:24:11.16086088Z",
+    "session": "019cc94e-47e5-7db3-ba1e-98d0e96c40dd",
+    "ended_at": "2026-03-07T17:24:11.160858172Z",
+    "duration_seconds": 674.5046553072,
+    "token_usage": {
+      "input": 32380,
+      "cached_input": 759808,
+      "write_cached_input": 0,
+      "output": 17575,
+      "total": 809763,
+      "cost": 0.534527
+    }
+  },
+  "verified_at": "2026-03-07T17:24:11.938621922Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Valid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Valid/package (0.00s)\n        gab_scenario_test.go:69: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:69\n            \tError:      \tNot equal: \n            \t            \texpected: scenario.TestTarget{Target:\"some/pkg\", Run:\"\"}\n            \t            \tactual  : scenario.TestTarget{Target:\"./some/pkg\", Run:\"\"}\n            \t            \t\n            \t            \tDiff:\n            \t            \t--- Expected\n            \t            \t+++ Actual\n            \t            \t@@ -1,3 +1,3 @@\n            \t            \t (scenario.TestTarget) {\n            \t            \t- Target: (string) (len=8) \"some/pkg\",\n            \t            \t+ Target: (string) (len=10) \"./some/pkg\",\n            \t            \t  Run: (string) \"\"\n            \tTest:       \tTestGABScenarioTestTargets_Valid/package\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/verify\t0.203s\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

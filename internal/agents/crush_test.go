@@ -63,8 +63,8 @@ func TestCrushReasoningEffortForLLM(t *testing.T) {
 	require.Equal(t, "high", crushReasoningEffortForLLM(supportedDefault))
 
 	supportedExplicit := LLMDefinition{
-		Name:           "gpt-5.1-codex-high",
-		Model:          "gpt-5.1-codex-high",
+		Name:           "gpt-5.3-codex-xhigh",
+		Model:          "gpt-5.3-codex",
 		ReasoningLevel: "medium",
 	}
 	require.Equal(t, "medium", crushReasoningEffortForLLM(supportedExplicit))

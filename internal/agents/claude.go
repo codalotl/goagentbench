@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/codalotl/goagentbench/internal/output"
@@ -73,7 +72,7 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 		outputBytes, err = cmd.CombinedOutput()
 	}
 
-	transcript, usage, parsedSession, totalCost := parseClaudeOutput(outputBytes, model)
+	transcript, usage, parsedSession := parseClaudeOutput(outputBytes, model)
 
 	res := RunResults{
 		Transcript:             transcript,
@@ -82,7 +81,7 @@ func (c *claudeAgent) Run(cwd string, llm LLMDefinition, session string, instruc
 		WriteCachedInputTokens: usage.cacheWriteTokens,
 		OutputTokens:           usage.outputTokens,
 		Session:                session,
-		Cost:                   totalCost,
+		Cost:                   calculateLLMCost(llm, usage.inputTokens, usage.cacheReadTokens, usage.cacheWriteTokens, usage.outputTokens),
 	}
 	if res.Session == "" && parsedSession != "" {
 		res.Session = parsedSession
@@ -100,7 +99,7 @@ type claudeUsage struct {
 	outputTokens     int
 }
 
-func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, string, float64) {
+func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, string) {
 	reader := bytes.NewReader(raw)
 	scanner := bufio.NewScanner(reader)
 	buf := make([]byte, 0, 1024*1024)
@@ -108,7 +107,6 @@ func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, st
 
 	var usage claudeUsage
 	var session string
-	var totalCost float64
 	var usageFromModel bool
 	targetModel := normalizeClaudeModel(desiredModel)
 
@@ -139,12 +137,6 @@ func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, st
 		}
 
 		if typ, _ := payload["type"].(string); typ == "result" {
-			if costVal, ok := payload["total_cost_usd"]; ok {
-				if parsedCost, ok := asFloat(costVal); ok {
-					totalCost = parsedCost
-				}
-			}
-
 			var modelUsage any
 			if mu, ok := payload["modelUsage"]; ok {
 				modelUsage = mu
@@ -189,7 +181,7 @@ func parseClaudeOutput(raw []byte, desiredModel string) (string, claudeUsage, st
 		}
 	}
 
-	return string(raw), usage, session, totalCost
+	return string(raw), usage, session
 }
 
 func extractClaudeSessionID(payload map[string]any) string {
@@ -251,28 +243,6 @@ func accumulateClaudeModelUsage(target *claudeUsage, raw map[string]any) {
 	if val, ok := asInt(raw["cacheWriteInputTokens"]); ok {
 		target.cacheWriteTokens += val
 	}
-}
-
-func asFloat(val any) (float64, bool) {
-	switch v := val.(type) {
-	case float64:
-		return v, true
-	case float32:
-		return float64(v), true
-	case int:
-		return float64(v), true
-	case int64:
-		return float64(v), true
-	case json.Number:
-		if f, err := v.Float64(); err == nil {
-			return f, true
-		}
-	case string:
-		if f, err := strconv.ParseFloat(v, 64); err == nil {
-			return f, true
-		}
-	}
-	return 0, false
 }
 
 func claudeVersion(ctx context.Context) (string, error) {

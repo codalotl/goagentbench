@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1772561560",
+  "scenario": "self/parse_test_file",
+  "agent": "codalotl",
+  "agent_version": "0.12.0",
+  "model": "claude-opus-4-6",
+  "started_at": "2026-03-03T18:12:40.453718086Z",
+  "progress": {
+    "run_id": "run_1772561560",
+    "scenario": "self/parse_test_file",
+    "agent": "codalotl",
+    "agent_version": "0.12.0",
+    "model": "claude-opus-4-6",
+    "started_at": "2026-03-03T18:12:40.453718086Z",
+    "updated_at": "2026-03-03T18:15:12.512925129Z",
+    "ended_at": "2026-03-03T18:15:12.51291817Z",
+    "duration_seconds": 152.058663361,
+    "token_usage": {
+      "input": 13566,
+      "cached_input": 241364,
+      "write_cached_input": 25673,
+      "output": 8796,
+      "total": 289399,
+      "cost": 0.56886825
+    }
+  },
+  "verified_at": "2026-03-03T18:15:15.560486713Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "go: downloading github.com/stretchr/testify v1.11.1\ngo: downloading github.com/davecgh/go-spew v1.1.1\ngo: downloading github.com/pmezard/go-difflib v1.0.0\n?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\n    --- FAIL: TestGABScenarioTestTargets_Invalid/target_starts_with_dash (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/target_starts_with_dash\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

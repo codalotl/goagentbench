@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1773336126377218005_9",
+  "scenario": "self/copy_to_dir",
+  "agent": "codex",
+  "agent_version": "0.111.0",
+  "model": "gpt-5.4-high",
+  "started_at": "2026-03-12T17:22:06.377219713Z",
+  "progress": {
+    "run_id": "run_1773336126377218005_9",
+    "scenario": "self/copy_to_dir",
+    "agent": "codex",
+    "agent_version": "0.111.0",
+    "model": "gpt-5.4-high",
+    "started_at": "2026-03-12T17:22:06.377219713Z",
+    "updated_at": "2026-03-12T17:29:29.859139335Z",
+    "session": "019ce311-e43e-75d2-8449-b71dee8803fa",
+    "ended_at": "2026-03-12T17:29:29.859135502Z",
+    "duration_seconds": 798.2524439892,
+    "token_usage": {
+      "input": 42529,
+      "cached_input": 562048,
+      "write_cached_input": 0,
+      "output": 16264,
+      "total": 620841,
+      "cost": 0.4907945
+    }
+  },
+  "verified_at": "2026-03-12T17:29:30.414627294Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": true,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\nok  \tgithub.com/codalotl/goagentbench/internal/fsutil\t0.005s\nok  \tgithub.com/codalotl/goagentbench/internal/scenario\t(cached)\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\n"
+    }
+  ]
+}

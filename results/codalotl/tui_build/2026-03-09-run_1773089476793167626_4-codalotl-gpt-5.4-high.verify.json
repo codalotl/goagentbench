@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1773089476793167626_4",
+  "scenario": "codalotl/tui_build",
+  "agent": "codalotl",
+  "agent_version": "0.13.0",
+  "model": "gpt-5.4-high",
+  "started_at": "2026-03-09T20:51:16.793170126Z",
+  "progress": {
+    "run_id": "run_1773089476793167626_4",
+    "scenario": "codalotl/tui_build",
+    "agent": "codalotl",
+    "agent_version": "0.13.0",
+    "model": "gpt-5.4-high",
+    "started_at": "2026-03-09T20:51:16.793170126Z",
+    "updated_at": "2026-03-09T20:58:25.547745547Z",
+    "ended_at": "2026-03-09T20:58:25.547735964Z",
+    "duration_seconds": 428.751886113,
+    "token_usage": {
+      "input": 41439,
+      "cached_input": 887623,
+      "write_cached_input": 0,
+      "output": 31259,
+      "total": 960321,
+      "cost": 0.79438825
+    }
+  },
+  "verified_at": "2026-03-09T20:58:26.087261547Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./internal/q/tui",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/codalotl/internal/q/tui\t(cached)\n"
+    }
+  ]
+}

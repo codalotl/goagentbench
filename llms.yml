@@ -8,30 +8,41 @@
 # we can add a 'per-agent' field to the llm object with per-agent override.
 #
 # For Claude models, reasoning-level: high -> "extended thinking" (10kMAX_THINKING_TOKENS=4096 tokens if we need to set it manually).
+model-costs:
+  gpt-5.4-costs: &gpt54_costs
+    input-cost: 2.5
+    cached-input-cost: 0.25
+    output-cost: 15
+  gemini-3.1-costs: &gemini31_costs
+    input-cost: 2
+    cached-input-cost: 0.2
+    output-cost: 12
+  claude-opus-4-6-costs: &claude_opus_46_costs
+    input-cost: 5
+    cached-input-cost: 0.5
+    cache-write-input-cost: 6.25
+    output-cost: 25
+
 llms:
   #
   # OpenAI Models
   #
+  - name: gpt-5.4-high
+    model: gpt-5.4
+    reasoning-level: high
+    costs: *gpt54_costs
+    per-agent:
+      codalotl: gpt-5.4-high
   - name: gpt-5.2-high
     model: gpt-5.2
     reasoning-level: high
-  - name: gpt-5.1-codex-high
-    model: gpt-5.1-codex
+    per-agent:
+      codalotl: gpt-5.2-high
+  - name: gpt-5.3-codex-high
+    model: gpt-5.3-codex
     reasoning-level: high
     per-agent:
-      cursor-agent: gpt-5.1-codex-high
-  - name: gpt-5.1-codex-max-xhigh
-    model: gpt-5.1-codex-max
-    reasoning-level: xhigh
-  - name: gpt-5.1-codex-max-high
-    model: gpt-5.1-codex-max
-    reasoning-level: high
-  - name: gpt-5.1-codex-max-medium
-    model: gpt-5.1-codex-max
-    reasoning-level: medium
-  - name: gpt-5.1-codex-max-low
-    model: gpt-5.1-codex-max
-    reasoning-level: low
+      codalotl: gpt-5.3-codex-high
   
   #
   # XAI Models
@@ -50,19 +61,21 @@ llms:
   #
   # Google Models
   #
-  - name: gemini-3-pro
-    model: gemini-3-pro
+  - name: gemini-3.1
+    model: gemini-3.1-pro-preview-customtools
+    costs: *gemini31_costs
   
   #
   # Anthropic Models
   #
-  - name: claude-opus-4.5-thinking
-    model: claude-opus-4-5-20251101
+  - name: claude-opus-4-6
+    model: claude-opus-4-6
+    reasoning-level: high
+    costs: *claude_opus_46_costs
+    per-agent:
+      codalotl: opus-4.6
+  - name: claude-sonnet-4-6
+    model: claude-sonnet-4-6
     reasoning-level: high
     per-agent:
-      cursor-agent: claude-4.5-opus-high-thinking
-  - name: claude-sonnet-4.5-thinking
-    model: claude-sonnet-4-5-20250929
-    reasoning-level: high
-    per-agent:
-      cursor-agent: claude-4.5-sonnet-thinking
+      codalotl: sonnet-4.6

@@ -23,7 +23,7 @@ type crushAgent struct {
 
 // crushProviderForLLM maps llms.yml names to Crush providers.
 var crushProviderForLLM = map[string]string{
-	"gpt-5.1-codex-high":      "openai",
+	"gpt-5.3-codex-xhigh":     "openai",
 	"grok-code-fast-1":        "xai",
 	"grok-4-1-fast-reasoning": "xai",
 	"grok-4":                  "xai",

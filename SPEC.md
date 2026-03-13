@@ -90,9 +90,44 @@ If the `--copy-only` option is used, `verify` only applies `verify.copy` steps t
 - Runs `verify`
 - If any steps fail, we abort the pipeline (ex: validate scenario found issue; setup cannot clone repo; agent exits with status 1).
 
+### exec-all
+
+`goagentbench exec-all --agent=codex [--model=gpt-5.1-codex-max-medium] [--scenario=self/patch,self/report] [--runs=3] [--max-interruptions=2]`
+
+Runs the full scenario set for a given `{agent, model}` pair. This command takes no positional scenario args.
+
+Behavior:
+- Discovers every scenario under `./testdata/**/scenario.yml`, excluding anything under `./testdata/smoke/`.
+- If `--scenario` is provided, it is treated as a comma-separated allowlist of scenario names (ex: `self/patch,self/report`) and `exec-all` only runs that subset.
+- Normalizes discovered paths to scenario names accepted by other commands (ex: `self/patch`), sorts them lexicographically, and runs them sequentially.
+- `--scenario` entries must be non-smoke scenario names accepted by other commands. Missing names make `exec-all` exit immediately before any runs start.
+- Validates `--agent` / `--model` up front.
+- Validates each discovered scenario once up front. If any scenario is invalid, `exec-all` exits immediately and does not start any runs.
+- `--runs` is required to be >= 1 and defaults to 1. `--runs=3` means 3 completed runs per discovered scenario.
+- Each run attempt starts from a fresh `setup`, then runs `run-agent`, then `verify`.
+
+Interruptions:
+- An "interruption" is a command-level failure that prevents a run from reaching a completed verification report. Examples: a transient provider/API failure, an agent process crash, a network/transport issue during setup, or a verification infrastructure error.
+- A verification report with `success=false` is NOT an interruption. It is a completed run and still counts toward `--runs`.
+- `--max-interruptions` is required to be >= 0 and defaults to 2. This budget is tracked per scenario, not globally.
+- When an interruption happens, that attempt is discarded, `setup` is run again to restore a clean workspace, and the same scenario/run number is retried.
+- Once a scenario reaches `--max-interruptions`, `exec-all` gives up on that scenario, marks the current run number as `interrupted`, skips any later run numbers for that scenario, and continues with the next scenario.
+- If any scenario reaches its interruption limit, `exec-all` still finishes the full batch summary, but exits non-zero at the end.
+
+Reporting:
+- Completed runs write the normal `results/<scenario>/...verify.json` files.
+- At the end, `exec-all` prints a batch summary.
+- The summary includes the `agent` and `model`.
+- The summary includes the discovered scenario count.
+- The summary includes the requested `--runs` and `--max-interruptions`.
+- The summary includes the total number of completed runs and the total number of interruption attempts.
+- The summary includes one line per requested run number, showing: scenario, run number, status (`success`, `partial`, `failed`, `interrupted`, or `skipped-after-interruptions`).
+- For completed runs, the summary includes the `run_id` and written verify report path.
+- For `interrupted` entries, the summary includes the interruption count consumed and the last interruption error.
+
 ### report
 
-`goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22"`
+`goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22" --before="2026-01-02"`
 
 Options:
 - `--scenarios`: comma separated list of scenarios. If omitted, all scenarios are used.
@@ -100,14 +135,15 @@ Options:
 - `--models`: comma separated list of models. If omitted, all models are used.
 - `--limit`: number of results (N) to use for a given {scenario, agent, llm}. Defaults to 1 if omitted. Uses the most recent N results (based on verified_at).
 - `--after`: all results must occur on-or-after this date (YYYY-MM-DD, in the default tz of the running computer).
-- `--all-agent-versions`: includes all agent versions (default: most recent version by semver).
+- `--before`: all results must occur on-or-before this date (YYYY-MM-DD, in the default tz of the running computer).
+- `--latest-agent-version-only`: only include the most recent agent version by semver for a given {agent, model}. By default, report coalesces versions on the same {agent, model} pair.
 - `--include-tokens`: include tokens in the output (default: false).
 - `--publish`: publish these results (default: false).
 
 Outputs a CSV to stdout with this data (based on data in ./results) (headers included in CSV). Columns:
 - agent: {agent, model} are the "group by key". This pair is unique in the CSV.
 - model: see agent
-- agent_version: version of the agent. If multiple, comma separated list of versions, sorted by semver if version is semver, otherwise by string.
+- agent_version: version(s) of the agent that contributed to this {agent, model} row. If multiple, comma separated list of versions, sorted by semver if version is semver, otherwise by string.
 - unique_scenarios: number of unique scenarios aggregated for this {agent, model}.
 - count: number of results for the {agent, model} pair.
 - success: number of successful results.
@@ -130,7 +166,7 @@ Other Notes:
 - Round all decimal values (ex: success_rate; avg_cost; etc) to nearest hundredth. Remove trailing zeros after the decimal, and unnecessary decimals.
 
 Publishing results:
-If `--publish`, write the csv output to a file in the `./result_summaries/summary_<datetime>` directory, where `<datetime>` is the timestamp of the run (in human readable format, not epoch seconds). Within this dir, the file should be `report.csv`. As a peer to this file, write `command` which just writes the command that was run ex: `goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22" --publish`.
+If `--publish`, write the csv output to a file in the `./result_summaries/summary_<datetime>` directory, where `<datetime>` is the timestamp of the run (in human readable format, not epoch seconds). Within this dir, the file should be `report.csv`. As a peer to this file, write `command` which just writes the command that was run ex: `goagentbench report --scenarios="self/must_modify,self/patch" --agents="cursor-agent,claude" --models="gpt-5.2-high" --limit="1" --after="2025-12-22" --before="2026-01-02" --publish`.
 
 In addition writing these files, also update README.md, as follows:
 - Repace the text between `<!-- BEGIN_RESULTS -->` and `<!-- END_RESULTS -->` with a markdown table version of the csv. Besure to keep the comment markers.

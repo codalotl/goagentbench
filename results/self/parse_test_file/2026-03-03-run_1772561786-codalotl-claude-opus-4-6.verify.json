@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1772561786",
+  "scenario": "self/parse_test_file",
+  "agent": "codalotl",
+  "agent_version": "0.12.0",
+  "model": "claude-opus-4-6",
+  "started_at": "2026-03-03T18:16:26.341700385Z",
+  "progress": {
+    "run_id": "run_1772561786",
+    "scenario": "self/parse_test_file",
+    "agent": "codalotl",
+    "agent_version": "0.12.0",
+    "model": "claude-opus-4-6",
+    "started_at": "2026-03-03T18:16:26.341700385Z",
+    "updated_at": "2026-03-03T18:19:17.963972173Z",
+    "ended_at": "2026-03-03T18:19:17.963970006Z",
+    "duration_seconds": 171.622180078,
+    "token_usage": {
+      "input": 12079,
+      "cached_input": 212237,
+      "write_cached_input": 22575,
+      "output": 11752,
+      "total": 258643,
+      "cost": 0.6014072500000001
+    }
+  },
+  "verified_at": "2026-03-03T18:19:18.507169881Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\n    --- FAIL: TestGABScenarioTestTargets_Invalid/target_starts_with_dash (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/target_starts_with_dash\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

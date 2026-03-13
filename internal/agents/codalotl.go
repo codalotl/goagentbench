@@ -68,14 +68,15 @@ func (c *codalotlAgent) Run(cwd string, llm LLMDefinition, session string, instr
 	}
 
 	transcript, usage := parseCodalotlOutput(outputBytes)
-	cost := calculateCodexCost(model, usage.inputTokens, usage.cachedInputTokens, usage.outputTokens)
+	cost := calculateLLMCost(llm, usage.inputTokens, usage.cachedInputTokens, usage.writeCachedInputTokens, usage.outputTokens)
 	res := RunResults{
-		Transcript:        transcript,
-		InputTokens:       usage.inputTokens,
-		CachedInputTokens: usage.cachedInputTokens,
-		OutputTokens:      usage.outputTokens,
-		Cost:              cost,
-		Session:           "",
+		Transcript:             transcript,
+		InputTokens:            usage.inputTokens,
+		CachedInputTokens:      usage.cachedInputTokens,
+		WriteCachedInputTokens: usage.writeCachedInputTokens,
+		OutputTokens:           usage.outputTokens,
+		Cost:                   cost,
+		Session:                "",
 	}
 	if err != nil {
 		res.Err = err
@@ -84,13 +85,14 @@ func (c *codalotlAgent) Run(cwd string, llm LLMDefinition, session string, instr
 }
 
 type codalotlUsage struct {
-	inputTokens       int
-	cachedInputTokens int
-	outputTokens      int
-	totalTokens       int
+	inputTokens            int
+	cachedInputTokens      int
+	writeCachedInputTokens int
+	outputTokens           int
+	totalTokens            int
 }
 
-var codalotlTokensPattern = regexp.MustCompile(`Tokens:\s*input=(\d+)\s+cached_input=(\d+)\s+output=(\d+)\s+total=(\d+)`)
+var codalotlTokenFieldPattern = regexp.MustCompile(`([a-z_]+)=(\d+)`)
 
 func parseCodalotlOutput(raw []byte) (string, codalotlUsage) {
 	// Keep the full transcript (other agents keep raw output as well), but scan
@@ -102,20 +104,56 @@ func parseCodalotlOutput(raw []byte) (string, codalotlUsage) {
 		if line == "" {
 			continue
 		}
-		if m := codalotlTokensPattern.FindStringSubmatch(line); len(m) == 5 {
-			input, _ := strconv.Atoi(m[1])
-			cached, _ := strconv.Atoi(m[2])
-			outputTokens, _ := strconv.Atoi(m[3])
-			total, _ := strconv.Atoi(m[4])
-			return out, codalotlUsage{
-				inputTokens:       input,
-				cachedInputTokens: cached,
-				outputTokens:      outputTokens,
-				totalTokens:       total,
-			}
+		if usage, ok := parseCodalotlUsageLine(line); ok {
+			return out, usage
 		}
 	}
 	return out, codalotlUsage{}
+}
+
+func parseCodalotlUsageLine(line string) (codalotlUsage, bool) {
+	if !strings.Contains(line, "Tokens:") {
+		return codalotlUsage{}, false
+	}
+	matches := codalotlTokenFieldPattern.FindAllStringSubmatch(line, -1)
+	if len(matches) == 0 {
+		return codalotlUsage{}, false
+	}
+
+	var usage codalotlUsage
+	var hasInput, hasCached, hasOutput bool
+	for _, match := range matches {
+		if len(match) != 3 {
+			continue
+		}
+		value, err := strconv.Atoi(match[2])
+		if err != nil {
+			continue
+		}
+		switch match[1] {
+		case "input":
+			usage.inputTokens = value
+			hasInput = true
+		case "cached_input":
+			usage.cachedInputTokens = value
+			hasCached = true
+		case "cache_writes", "write_cached_input":
+			usage.writeCachedInputTokens = value
+		case "output":
+			usage.outputTokens = value
+			hasOutput = true
+		case "total":
+			usage.totalTokens = value
+		}
+	}
+	if hasInput && hasCached && hasOutput {
+		computedTotal := usage.inputTokens + usage.cachedInputTokens + usage.writeCachedInputTokens + usage.outputTokens
+		if computedTotal > 0 {
+			usage.totalTokens = computedTotal
+		}
+		return usage, true
+	}
+	return codalotlUsage{}, false
 }
 
 var codalotlVersionPattern = regexp.MustCompile(`v?(\d+\.\d+\.\d+(?:[-\w\.]+)?)`)

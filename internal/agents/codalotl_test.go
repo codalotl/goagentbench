@@ -20,8 +20,25 @@ func TestParseCodalotlOutput_ExtractsUsageFromLastLine(t *testing.T) {
 	require.Equal(t, raw, transcript)
 	require.Equal(t, 10042, usage.inputTokens)
 	require.Equal(t, 32000, usage.cachedInputTokens)
+	require.Equal(t, 0, usage.writeCachedInputTokens)
 	require.Equal(t, 1043, usage.outputTokens)
 	require.Equal(t, 43085, usage.totalTokens)
+}
+
+func TestParseCodalotlOutput_ExtractsUsageWithCacheWrites(t *testing.T) {
+	raw := strings.Join([]string{
+		"some response text",
+		"Agent finished the turn. Tokens: input=4666 cached_input=18553 cache_writes=5046 output=459 total=23678",
+	}, "\n")
+
+	transcript, usage := parseCodalotlOutput([]byte(raw))
+
+	require.Equal(t, raw, transcript)
+	require.Equal(t, 4666, usage.inputTokens)
+	require.Equal(t, 18553, usage.cachedInputTokens)
+	require.Equal(t, 5046, usage.writeCachedInputTokens)
+	require.Equal(t, 459, usage.outputTokens)
+	require.Equal(t, 28724, usage.totalTokens)
 }
 
 func TestParseCodalotlOutput_NoUsageLine(t *testing.T) {
@@ -31,6 +48,7 @@ func TestParseCodalotlOutput_NoUsageLine(t *testing.T) {
 
 	require.Equal(t, 0, usage.inputTokens)
 	require.Equal(t, 0, usage.cachedInputTokens)
+	require.Equal(t, 0, usage.writeCachedInputTokens)
 	require.Equal(t, 0, usage.outputTokens)
 	require.Equal(t, 0, usage.totalTokens)
 }

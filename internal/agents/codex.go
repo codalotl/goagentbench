@@ -23,18 +23,6 @@ type codexAgent struct {
 const (
 	// Determined empirically on 2026/01/15, by comparing durations from several runs with/without priority processing.
 	codexChatGPTDurationScale = 1.8
-
-	codexLegacyInputCostPerToken       = 1.25 / 1_000_000
-	codexLegacyCachedInputCostPerToken = 0.125 / 1_000_000
-	codexLegacyOutputCostPerToken      = 10.0 / 1_000_000
-
-	codexGPT51InputCostPerToken       = 1.15 / 1_000_000
-	codexGPT51CachedInputCostPerToken = 0.13 / 1_000_000
-	codexGPT51OutputCostPerToken      = 10.0 / 1_000_000
-
-	codexGPT52InputCostPerToken       = 1.75 / 1_000_000
-	codexGPT52CachedInputCostPerToken = 0.18 / 1_000_000
-	codexGPT52OutputCostPerToken      = 14.0 / 1_000_000
 )
 
 func newCodexAgent(ctx context.Context, printer *output.Printer) Agent {
@@ -91,7 +79,7 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	if nonCachedInputTokens < 0 {
 		nonCachedInputTokens = 0
 	}
-	cost := calculateCodexCost(llm.Model, nonCachedInputTokens, usage.cachedTokens, usage.outputTokens)
+	cost := calculateLLMCost(llm, nonCachedInputTokens, usage.cachedTokens, 0, usage.outputTokens)
 
 	result := RunResults{
 		Transcript:        transcript,
@@ -255,44 +243,4 @@ func parseCodexVersion(output string) string {
 		return fields[0]
 	}
 	return ""
-}
-
-type codexPricing struct {
-	inputCostPerToken       float64
-	cachedInputCostPerToken float64
-	outputCostPerToken      float64
-}
-
-func codexPricingForModel(model string) codexPricing {
-	trimmed := strings.TrimSpace(model)
-	switch {
-	case strings.HasPrefix(trimmed, "gpt-5.2"):
-		return codexPricing{
-			inputCostPerToken:       codexGPT52InputCostPerToken,
-			cachedInputCostPerToken: codexGPT52CachedInputCostPerToken,
-			outputCostPerToken:      codexGPT52OutputCostPerToken,
-		}
-	case strings.HasPrefix(trimmed, "gpt-5.1"):
-		return codexPricing{
-			inputCostPerToken:       codexGPT51InputCostPerToken,
-			cachedInputCostPerToken: codexGPT51CachedInputCostPerToken,
-			outputCostPerToken:      codexGPT51OutputCostPerToken,
-		}
-	default:
-		return codexPricing{
-			inputCostPerToken:       codexLegacyInputCostPerToken,
-			cachedInputCostPerToken: codexLegacyCachedInputCostPerToken,
-			outputCostPerToken:      codexLegacyOutputCostPerToken,
-		}
-	}
-}
-
-func calculateCodexCost(model string, nonCached, cached, output int) float64 {
-	return calculateCodexCostForPricing(codexPricingForModel(model), nonCached, cached, output)
-}
-
-func calculateCodexCostForPricing(pricing codexPricing, nonCached, cached, output int) float64 {
-	return float64(nonCached)*pricing.inputCostPerToken +
-		float64(cached)*pricing.cachedInputCostPerToken +
-		float64(output)*pricing.outputCostPerToken
 }
