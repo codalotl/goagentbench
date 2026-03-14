@@ -1,6 +1,10 @@
 package agents
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -67,7 +71,40 @@ func TestCalculateLLMCost_RequiresYAMLPricing(t *testing.T) {
 }
 
 func TestCodexScaleDurationFromLoginStatusOutput(t *testing.T) {
-	require.InDelta(t, 1.8, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n"), 1e-9)
-	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Not logged in\n"))
-	require.Zero(t, codexScaleDurationFromLoginStatusOutput(""))
+	require.InDelta(t, 1.8, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n", "pro"), 1e-9)
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n", "plus"))
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Not logged in\n", "pro"))
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("", "pro"))
+}
+
+func TestCodexChatGPTPlanTypeFromAuthFile(t *testing.T) {
+	authPath := filepath.Join(t.TempDir(), "auth.json")
+	require.NoError(t, os.WriteFile(authPath, []byte(`{"tokens":{"id_token":"`+testJWTWithPlanType(t, "pro")+`"}}`), 0o600))
+
+	planType, err := codexChatGPTPlanTypeFromAuthFile(authPath)
+
+	require.NoError(t, err)
+	require.Equal(t, "pro", planType)
+}
+
+func TestCodexChatGPTPlanTypeFromIDToken_InvalidToken(t *testing.T) {
+	planType, err := codexChatGPTPlanTypeFromIDToken("not-a-jwt")
+
+	require.Error(t, err)
+	require.Empty(t, planType)
+}
+
+func testJWTWithPlanType(t *testing.T, planType string) string {
+	t.Helper()
+
+	header, err := json.Marshal(map[string]string{"alg": "none", "typ": "JWT"})
+	require.NoError(t, err)
+	payload, err := json.Marshal(map[string]any{
+		"https://api.openai.com/auth": map[string]string{
+			"chatgpt_plan_type": planType,
+		},
+	})
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(header) + "." + base64.RawURLEncoding.EncodeToString(payload) + ".signature"
 }
