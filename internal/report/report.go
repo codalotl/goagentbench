@@ -21,14 +21,16 @@ import (
 const resultsEnvVar = "GOAGENTBENCH_RESULTS"
 
 type Options struct {
-	RootPath         string
-	Scenarios        []string
-	Agents           []string
-	Models           []string
-	Limit            int
-	After            *time.Time
-	AllAgentVersions bool
-	IncludeTokens    bool
+	RootPath               string
+	Scenarios              []string
+	Agents                 []string
+	Models                 []string
+	Version                string
+	Limit                  int
+	After                  *time.Time
+	Before                 *time.Time
+	LatestAgentVersionOnly bool
+	IncludeTokens          bool
 }
 
 type Row struct {
@@ -75,12 +77,14 @@ func Run(opts Options) (*Report, error) {
 	scenarioSet := sliceToSet(opts.Scenarios)
 	agentSet := sliceToSet(opts.Agents)
 	modelSet := sliceToSet(opts.Models)
+	versionFilter := strings.TrimSpace(opts.Version)
 
 	filtered := make([]resultEntry, 0, len(entries))
 	for _, e := range entries {
 		sc := strings.TrimSpace(e.Scenario)
 		agent := strings.TrimSpace(e.Agent)
 		model := strings.TrimSpace(e.Model)
+		version := strings.TrimSpace(e.Version)
 		if scenarioSet != nil && !scenarioSet[sc] {
 			continue
 		}
@@ -90,14 +94,23 @@ func Run(opts Options) (*Report, error) {
 		if modelSet != nil && !modelSet[model] {
 			continue
 		}
+		if versionFilter != "" && version != versionFilter {
+			continue
+		}
 		if opts.After != nil && e.VerifiedAt.Before(*opts.After) {
 			continue
+		}
+		if opts.Before != nil {
+			beforeExclusive := opts.Before.AddDate(0, 0, 1)
+			if !e.VerifiedAt.Before(beforeExclusive) {
+				continue
+			}
 		}
 		filtered = append(filtered, e)
 	}
 
 	filtered = dedupByRunIDKeepLatest(filtered)
-	if !opts.AllAgentVersions {
+	if opts.LatestAgentVersionOnly {
 		filtered = filterToLatestVersionPerAgentModel(filtered)
 	}
 	filtered = applyLimitPerScenarioAgentModel(filtered, limit)
@@ -110,7 +123,7 @@ func Run(opts Options) (*Report, error) {
 
 	rows := make([]Row, 0, len(grouped))
 	for _, group := range grouped {
-		row, ok := buildRow(group, opts.AllAgentVersions)
+		row, ok := buildRow(group)
 		if !ok {
 			continue
 		}
@@ -371,26 +384,12 @@ func applyLimitPerScenarioAgentModel(entries []resultEntry, limit int) []resultE
 	return out
 }
 
-func buildRow(group []resultEntry, allAgentVersions bool) (Row, bool) {
+func buildRow(group []resultEntry) (Row, bool) {
 	if len(group) == 0 {
 		return Row{}, false
 	}
 	agent := group[0].Agent
 	model := group[0].Model
-
-	selectedVersion := selectLatestVersion(group)
-	if !allAgentVersions && selectedVersion != "" {
-		filtered := group[:0]
-		for _, e := range group {
-			if e.Version == selectedVersion {
-				filtered = append(filtered, e)
-			}
-		}
-		group = filtered
-		if len(group) == 0 {
-			return Row{}, false
-		}
-	}
 
 	uniqueScenarios := map[string]bool{}
 	versions := map[string]bool{}
@@ -450,13 +449,12 @@ func buildRow(group []resultEntry, allAgentVersions bool) (Row, bool) {
 
 	versionList := uniqueVersionsSorted(versions)
 	versionValue := ""
-	switch {
-	case allAgentVersions && len(versionList) > 0:
+	switch len(versionList) {
+	case 0:
+	case 1:
+		versionValue = versionList[0]
+	default:
 		versionValue = strings.Join(versionList, ",")
-	case !allAgentVersions && strings.TrimSpace(selectedVersion) != "":
-		versionValue = selectedVersion
-	case !allAgentVersions && len(versionList) > 0:
-		versionValue = versionList[len(versionList)-1]
 	}
 
 	return Row{

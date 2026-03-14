@@ -54,7 +54,7 @@ func TestRunAppliesLimitAndDedup(t *testing.T) {
 	require.Equal(t, 2, rep.Rows[0].Count)
 }
 
-func TestRunDefaultsToLatestAgentVersionUnlessAll(t *testing.T) {
+func TestRunCoalescesAgentVersionsByDefault(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
@@ -82,17 +82,96 @@ func TestRunDefaultsToLatestAgentVersionUnlessAll(t *testing.T) {
 	write("0.1.0", "run_1", now.Add(-2*time.Hour))
 	write("0.2.0", "run_2", now.Add(-1*time.Hour))
 
-	latestOnly, err := Run(Options{RootPath: root, Limit: 10})
+	rep, err := Run(Options{RootPath: root, Limit: 10})
+	require.NoError(t, err)
+	require.Len(t, rep.Rows, 1)
+	require.Equal(t, "0.1.0,0.2.0", rep.Rows[0].AgentVersion)
+	require.Equal(t, 2, rep.Rows[0].Count)
+
+	latestOnly, err := Run(Options{RootPath: root, Limit: 10, LatestAgentVersionOnly: true})
 	require.NoError(t, err)
 	require.Len(t, latestOnly.Rows, 1)
 	require.Equal(t, "0.2.0", latestOnly.Rows[0].AgentVersion)
 	require.Equal(t, 1, latestOnly.Rows[0].Count)
+}
 
-	all, err := Run(Options{RootPath: root, Limit: 10, AllAgentVersions: true})
+func TestRunFiltersByExactAgentVersionBeforeLatestVersionSelection(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	scenario := "demo"
+
+	now := time.Now()
+	write := func(version, runID string, verifiedAt time.Time) {
+		t.Helper()
+		rep := types.VerificationReport{
+			RunID:        runID,
+			Scenario:     scenario,
+			Agent:        "codex",
+			AgentVersion: version,
+			Model:        "gpt",
+			VerifiedAt:   verifiedAt,
+			Success:      true,
+			Progress: &types.RunProgress{
+				DurationSeconds: 10,
+				TokenUsage:      types.TokenUsage{Cost: 1, Input: 1, Total: 1},
+			},
+		}
+		writeReportFile(t, filepath.Join(root, "results", scenario), runID+".verify.json", rep)
+	}
+
+	write("0.1.0", "run_1", now.Add(-2*time.Hour))
+	write("0.2.0", "run_2", now.Add(-1*time.Hour))
+
+	rep, err := Run(Options{RootPath: root, Limit: 10, Version: "0.1.0"})
 	require.NoError(t, err)
-	require.Len(t, all.Rows, 1)
-	require.Equal(t, "0.1.0,0.2.0", all.Rows[0].AgentVersion)
-	require.Equal(t, 2, all.Rows[0].Count)
+	require.Len(t, rep.Rows, 1)
+	require.Equal(t, "0.1.0", rep.Rows[0].AgentVersion)
+	require.Equal(t, 1, rep.Rows[0].Count)
+}
+
+func TestRunFiltersByAfterAndBeforeDates(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	scenario := "demo"
+	loc := time.FixedZone("test", -8*60*60)
+
+	write := func(runID string, verifiedAt time.Time) {
+		t.Helper()
+		rep := types.VerificationReport{
+			RunID:        runID,
+			Scenario:     scenario,
+			Agent:        "codex",
+			AgentVersion: "0.1.0",
+			Model:        "gpt",
+			VerifiedAt:   verifiedAt,
+			Success:      true,
+			Progress: &types.RunProgress{
+				DurationSeconds: 10,
+				TokenUsage:      types.TokenUsage{Cost: 1, Input: 1, Total: 1},
+			},
+		}
+		writeReportFile(t, filepath.Join(root, "results", scenario), runID+".verify.json", rep)
+	}
+
+	write("run_1", time.Date(2026, 1, 1, 23, 59, 59, 0, loc))
+	write("run_2", time.Date(2026, 1, 2, 0, 0, 0, 0, loc))
+	write("run_3", time.Date(2026, 1, 2, 23, 59, 59, 0, loc))
+	write("run_4", time.Date(2026, 1, 3, 0, 0, 0, 0, loc))
+
+	after := time.Date(2026, 1, 2, 0, 0, 0, 0, loc)
+	before := time.Date(2026, 1, 2, 0, 0, 0, 0, loc)
+
+	rep, err := Run(Options{
+		RootPath: root,
+		Limit:    10,
+		After:    &after,
+		Before:   &before,
+	})
+	require.NoError(t, err)
+	require.Len(t, rep.Rows, 1)
+	require.Equal(t, 2, rep.Rows[0].Count)
 }
 
 func TestAveragesExcludeZeroAsMissing(t *testing.T) {
@@ -283,7 +362,7 @@ func TestRunSortsBySuccessRateDesc(t *testing.T) {
 		Success:      true,
 	})
 
-	rep, err := Run(Options{RootPath: root, Limit: 10, AllAgentVersions: true})
+	rep, err := Run(Options{RootPath: root, Limit: 10})
 	require.NoError(t, err)
 	require.Len(t, rep.Rows, 2)
 	require.Equal(t, "agent-b", rep.Rows[0].Agent)

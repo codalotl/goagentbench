@@ -4,10 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -23,18 +26,7 @@ type codexAgent struct {
 const (
 	// Determined empirically on 2026/01/15, by comparing durations from several runs with/without priority processing.
 	codexChatGPTDurationScale = 1.8
-
-	codexLegacyInputCostPerToken       = 1.25 / 1_000_000
-	codexLegacyCachedInputCostPerToken = 0.125 / 1_000_000
-	codexLegacyOutputCostPerToken      = 10.0 / 1_000_000
-
-	codexGPT51InputCostPerToken       = 1.15 / 1_000_000
-	codexGPT51CachedInputCostPerToken = 0.13 / 1_000_000
-	codexGPT51OutputCostPerToken      = 10.0 / 1_000_000
-
-	codexGPT52InputCostPerToken       = 1.75 / 1_000_000
-	codexGPT52CachedInputCostPerToken = 0.18 / 1_000_000
-	codexGPT52OutputCostPerToken      = 14.0 / 1_000_000
+	codexChatGPTPlanTypePro   = "pro"
 )
 
 func newCodexAgent(ctx context.Context, printer *output.Printer) Agent {
@@ -91,7 +83,7 @@ func (c *codexAgent) Run(cwd string, llm LLMDefinition, session string, instruct
 	if nonCachedInputTokens < 0 {
 		nonCachedInputTokens = 0
 	}
-	cost := calculateCodexCost(llm.Model, nonCachedInputTokens, usage.cachedTokens, usage.outputTokens)
+	cost := calculateLLMCost(llm, nonCachedInputTokens, usage.cachedTokens, 0, usage.outputTokens)
 
 	result := RunResults{
 		Transcript:        transcript,
@@ -119,16 +111,81 @@ func codexScaleDuration(ctx context.Context, cwd string) float64 {
 	if err != nil {
 		return 0
 	}
-	return codexScaleDurationFromLoginStatusOutput(string(out))
+	planType := codexChatGPTPlanType()
+	return codexScaleDurationFromLoginStatusOutput(string(out), planType)
 }
 
-func codexScaleDurationFromLoginStatusOutput(output string) float64 {
+func codexScaleDurationFromLoginStatusOutput(output string, planType string) float64 {
 	// When Codex is logged in via ChatGPT, it can execute slower than wall-clock measurements suggest
-	// for the same token usage; scale recorded DurationSeconds to better match expected runtime.
-	if strings.Contains(output, "Logged in using ChatGPT") {
+	// for the same token usage; only apply the empirical normalization for ChatGPT Pro accounts.
+	if strings.Contains(output, "Logged in using ChatGPT") && strings.EqualFold(strings.TrimSpace(planType), codexChatGPTPlanTypePro) {
 		return codexChatGPTDurationScale
 	}
 	return 0
+}
+
+type codexAuthFile struct {
+	Tokens codexAuthTokens `json:"tokens"`
+}
+
+type codexAuthTokens struct {
+	IDToken string `json:"id_token"`
+}
+
+type codexIDTokenClaims struct {
+	OpenAIAuth codexOpenAIAuthClaims `json:"https://api.openai.com/auth"`
+}
+
+type codexOpenAIAuthClaims struct {
+	ChatGPTPlanType string `json:"chatgpt_plan_type"`
+}
+
+func codexChatGPTPlanType() string {
+	authPath, err := codexAuthPath()
+	if err != nil {
+		return ""
+	}
+	planType, err := codexChatGPTPlanTypeFromAuthFile(authPath)
+	if err != nil {
+		return ""
+	}
+	return planType
+}
+
+func codexAuthPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".codex", "auth.json"), nil
+}
+
+func codexChatGPTPlanTypeFromAuthFile(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	var auth codexAuthFile
+	if err := json.Unmarshal(raw, &auth); err != nil {
+		return "", err
+	}
+	return codexChatGPTPlanTypeFromIDToken(auth.Tokens.IDToken)
+}
+
+func codexChatGPTPlanTypeFromIDToken(idToken string) (string, error) {
+	parts := strings.Split(idToken, ".")
+	if len(parts) < 2 {
+		return "", errors.New("invalid id token")
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", err
+	}
+	var claims codexIDTokenClaims
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(claims.OpenAIAuth.ChatGPTPlanType), nil
 }
 
 type codexUsage struct {
@@ -255,44 +312,4 @@ func parseCodexVersion(output string) string {
 		return fields[0]
 	}
 	return ""
-}
-
-type codexPricing struct {
-	inputCostPerToken       float64
-	cachedInputCostPerToken float64
-	outputCostPerToken      float64
-}
-
-func codexPricingForModel(model string) codexPricing {
-	trimmed := strings.TrimSpace(model)
-	switch {
-	case strings.HasPrefix(trimmed, "gpt-5.2"):
-		return codexPricing{
-			inputCostPerToken:       codexGPT52InputCostPerToken,
-			cachedInputCostPerToken: codexGPT52CachedInputCostPerToken,
-			outputCostPerToken:      codexGPT52OutputCostPerToken,
-		}
-	case strings.HasPrefix(trimmed, "gpt-5.1"):
-		return codexPricing{
-			inputCostPerToken:       codexGPT51InputCostPerToken,
-			cachedInputCostPerToken: codexGPT51CachedInputCostPerToken,
-			outputCostPerToken:      codexGPT51OutputCostPerToken,
-		}
-	default:
-		return codexPricing{
-			inputCostPerToken:       codexLegacyInputCostPerToken,
-			cachedInputCostPerToken: codexLegacyCachedInputCostPerToken,
-			outputCostPerToken:      codexLegacyOutputCostPerToken,
-		}
-	}
-}
-
-func calculateCodexCost(model string, nonCached, cached, output int) float64 {
-	return calculateCodexCostForPricing(codexPricingForModel(model), nonCached, cached, output)
-}
-
-func calculateCodexCostForPricing(pricing codexPricing, nonCached, cached, output int) float64 {
-	return float64(nonCached)*pricing.inputCostPerToken +
-		float64(cached)*pricing.cachedInputCostPerToken +
-		float64(output)*pricing.outputCostPerToken
 }

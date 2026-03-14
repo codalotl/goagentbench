@@ -1,0 +1,37 @@
+{
+  "run_id": "run_1773335026806436677_7",
+  "scenario": "self/parse_test_file",
+  "agent": "codalotl",
+  "agent_version": "0.14.0",
+  "model": "gemini-3.1",
+  "started_at": "2026-03-12T17:03:46.806442927Z",
+  "progress": {
+    "run_id": "run_1773335026806436677_7",
+    "scenario": "self/parse_test_file",
+    "agent": "codalotl",
+    "agent_version": "0.14.0",
+    "model": "gemini-3.1",
+    "started_at": "2026-03-12T17:03:46.806442927Z",
+    "updated_at": "2026-03-12T17:05:06.717514005Z",
+    "ended_at": "2026-03-12T17:05:06.71750788Z",
+    "duration_seconds": 79.911390246,
+    "token_usage": {
+      "input": 10933,
+      "cached_input": 86445,
+      "write_cached_input": 0,
+      "output": 7223,
+      "total": 104601,
+      "cost": 0.125831
+    }
+  },
+  "verified_at": "2026-03-12T17:05:07.489951964Z",
+  "success": false,
+  "tests": [
+    {
+      "name": "./...",
+      "passed": false,
+      "output": "?   \tgithub.com/codalotl/goagentbench\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/agents\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/cli\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/fsutil\t[no test files]\n--- FAIL: TestGABScenarioTestTargets_Invalid (0.00s)\n    --- FAIL: TestGABScenarioTestTargets_Invalid/empty (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/empty\n    --- FAIL: TestGABScenarioTestTargets_Invalid/absolute_path (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/absolute_path\n    --- FAIL: TestGABScenarioTestTargets_Invalid/missing_run_pattern (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/missing_run_pattern\n    --- FAIL: TestGABScenarioTestTargets_Invalid/missing_run_pattern_with_space (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/missing_run_pattern_with_space\n    --- FAIL: TestGABScenarioTestTargets_Invalid/package_ellipsis_with_run (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/package_ellipsis_with_run\n    --- FAIL: TestGABScenarioTestTargets_Invalid/mismatched_quotes (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/mismatched_quotes\n    --- FAIL: TestGABScenarioTestTargets_Invalid/target_starts_with_dash (0.00s)\n        gab_scenario_test.go:121: \n            \tError Trace:\t/workspace/workspace/self/parse_test_file/internal/scenario/gab_scenario_test.go:121\n            \tError:      \tAn error is expected but got nil.\n            \tTest:       \tTestGABScenarioTestTargets_Invalid/target_starts_with_dash\nFAIL\nFAIL\tgithub.com/codalotl/goagentbench/internal/scenario\t0.002s\n?   \tgithub.com/codalotl/goagentbench/internal/setup\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/types\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/verify\t[no test files]\n?   \tgithub.com/codalotl/goagentbench/internal/workspace\t[no test files]\nFAIL\n",
+      "error": "exit status 1"
+    }
+  ]
+}

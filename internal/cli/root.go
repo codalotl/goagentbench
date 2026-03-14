@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -27,6 +28,8 @@ var (
 	agentRunner         = agents.Run
 	agentVersionChecker = agents.AgentVersion
 	verifyRunner        = verify.Run
+	setupRunner         = setup.Run
+	runIDCounter        atomic.Uint64
 )
 
 // Execute runs the CLI.
@@ -41,6 +44,7 @@ func Execute() error {
 	root.AddCommand(newSetupCmd(workspacePath))
 	root.AddCommand(newRunAgentCmd(workspacePath))
 	root.AddCommand(newExecCmd(workspacePath))
+	root.AddCommand(newExecAllCmd(workspacePath))
 	root.AddCommand(newVerifyCmd(workspacePath))
 	root.AddCommand(newReportCmd())
 	executed, err := root.ExecuteC()
@@ -236,7 +240,7 @@ func runAgent(ctx context.Context, printer *output.Printer, workspacePath, scena
 	}
 	agentVersion = actualVersion
 	agentDef.Version = actualVersion
-	runID := fmt.Sprintf("run_%d", time.Now().Unix())
+	runID := newRunID()
 	now := time.Now()
 	start := types.RunStart{
 		RunID:        runID,
@@ -499,4 +503,8 @@ func writeJSON(path string, v any) error {
 		return err
 	}
 	return os.WriteFile(path, data, 0o644)
+}
+
+func newRunID() string {
+	return fmt.Sprintf("run_%d_%d", time.Now().UnixNano(), runIDCounter.Add(1))
 }

@@ -1,0 +1,41 @@
+{
+  "run_id": "run_1773250650403917380_3",
+  "scenario": "codalotl/cli_build",
+  "agent": "codalotl",
+  "agent_version": "0.14.0",
+  "model": "gemini-3.1",
+  "started_at": "2026-03-11T17:37:30.403920589Z",
+  "progress": {
+    "run_id": "run_1773250650403917380_3",
+    "scenario": "codalotl/cli_build",
+    "agent": "codalotl",
+    "agent_version": "0.14.0",
+    "model": "gemini-3.1",
+    "started_at": "2026-03-11T17:37:30.403920589Z",
+    "updated_at": "2026-03-11T17:40:28.454305838Z",
+    "ended_at": "2026-03-11T17:40:28.454299754Z",
+    "duration_seconds": 178.052332706,
+    "token_usage": {
+      "input": 31120,
+      "cached_input": 665539,
+      "write_cached_input": 0,
+      "output": 11755,
+      "total": 708414,
+      "cost": 0.33640780000000003
+    }
+  },
+  "verified_at": "2026-03-11T17:40:30.366321505Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./internal/cli",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/codalotl/internal/cli\t0.139s\n"
+    },
+    {
+      "name": "./internal/cli/gab",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/codalotl/internal/cli/gab\t0.691s\n"
+    }
+  ]
+}

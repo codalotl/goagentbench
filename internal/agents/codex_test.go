@@ -1,6 +1,10 @@
 package agents
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -34,33 +38,73 @@ func TestParseCodexOutput_RawWhenNonJSON(t *testing.T) {
 	require.Zero(t, usage.outputTokens)
 }
 
-func TestCalculateCodexCost(t *testing.T) {
-	nonCached := 2_000_000
-	cached := 1_000_000
-	output := 500_000
+func TestCalculateLLMCost_UsesYAMLPricing(t *testing.T) {
+	inputCost := 2.5
+	cachedInputCost := 0.25
+	cacheWriteInputCost := 6.25
+	outputCost := 15.0
+	llm := LLMDefinition{
+		Name:  "gpt-5.4-high",
+		Model: "gpt-5.4",
+		Costs: &LLMCostDefinition{
+			InputCost:           &inputCost,
+			CachedInputCost:     &cachedInputCost,
+			CacheWriteInputCost: &cacheWriteInputCost,
+			OutputCost:          &outputCost,
+		},
+	}
 
-	cost := calculateCodexCost("gpt-5.1-codex", nonCached, cached, output)
+	cost := calculateLLMCost(llm, 2_000_000, 1_000_000, 500_000, 500_000)
 
-	require.InDelta(t, 7.43, cost, 1e-6)
+	require.InDelta(t, 15.875, cost, 1e-6)
 }
 
-func TestCalculateCodexCost_GPT52(t *testing.T) {
-	nonCached := 2_000_000
-	cached := 1_000_000
-	output := 500_000
+func TestCalculateLLMCost_RequiresYAMLPricing(t *testing.T) {
+	llm := LLMDefinition{
+		Name:  "gpt-5.2-high",
+		Model: "gpt-5.2",
+	}
 
-	cost := calculateCodexCost("gpt-5.2", nonCached, cached, output)
+	cost := calculateLLMCost(llm, 2_000_000, 1_000_000, 500_000, 500_000)
 
-	require.InDelta(t, 10.68, cost, 1e-6)
-}
-
-func TestCalculateCodexCostZero(t *testing.T) {
-	cost := calculateCodexCost("gpt-5.1-codex", 0, 0, 0)
 	require.Zero(t, cost)
 }
 
 func TestCodexScaleDurationFromLoginStatusOutput(t *testing.T) {
-	require.InDelta(t, 1.8, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n"), 1e-9)
-	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Not logged in\n"))
-	require.Zero(t, codexScaleDurationFromLoginStatusOutput(""))
+	require.InDelta(t, 1.8, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n", "pro"), 1e-9)
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Logged in using ChatGPT\n", "plus"))
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("Not logged in\n", "pro"))
+	require.Zero(t, codexScaleDurationFromLoginStatusOutput("", "pro"))
+}
+
+func TestCodexChatGPTPlanTypeFromAuthFile(t *testing.T) {
+	authPath := filepath.Join(t.TempDir(), "auth.json")
+	require.NoError(t, os.WriteFile(authPath, []byte(`{"tokens":{"id_token":"`+testJWTWithPlanType(t, "pro")+`"}}`), 0o600))
+
+	planType, err := codexChatGPTPlanTypeFromAuthFile(authPath)
+
+	require.NoError(t, err)
+	require.Equal(t, "pro", planType)
+}
+
+func TestCodexChatGPTPlanTypeFromIDToken_InvalidToken(t *testing.T) {
+	planType, err := codexChatGPTPlanTypeFromIDToken("not-a-jwt")
+
+	require.Error(t, err)
+	require.Empty(t, planType)
+}
+
+func testJWTWithPlanType(t *testing.T, planType string) string {
+	t.Helper()
+
+	header, err := json.Marshal(map[string]string{"alg": "none", "typ": "JWT"})
+	require.NoError(t, err)
+	payload, err := json.Marshal(map[string]any{
+		"https://api.openai.com/auth": map[string]string{
+			"chatgpt_plan_type": planType,
+		},
+	})
+	require.NoError(t, err)
+
+	return base64.RawURLEncoding.EncodeToString(header) + "." + base64.RawURLEncoding.EncodeToString(payload) + ".signature"
 }

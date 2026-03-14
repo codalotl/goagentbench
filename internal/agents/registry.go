@@ -15,11 +15,26 @@ type Definition struct {
 	SupportsLLMs []string `yaml:"supports-llms"`
 }
 
+type LLMCostDefinition struct {
+	InputCost           *float64 `yaml:"input-cost"`
+	CachedInputCost     *float64 `yaml:"cached-input-cost"`
+	CacheWriteInputCost *float64 `yaml:"cache-write-input-cost"`
+	OutputCost          *float64 `yaml:"output-cost"`
+}
+
+func (c *LLMCostDefinition) IsComplete() bool {
+	if c == nil {
+		return false
+	}
+	return c.InputCost != nil && c.CachedInputCost != nil && c.OutputCost != nil
+}
+
 type LLMDefinition struct {
-	Name           string            `yaml:"name"`
-	Model          string            `yaml:"model"`
-	ReasoningLevel string            `yaml:"reasoning-level"`
-	PerAgent       map[string]string `yaml:"per-agent"`
+	Name           string             `yaml:"name"`
+	Model          string             `yaml:"model"`
+	ReasoningLevel string             `yaml:"reasoning-level"`
+	PerAgent       map[string]string  `yaml:"per-agent"`
+	Costs          *LLMCostDefinition `yaml:"costs"`
 }
 
 type registryFile struct {
@@ -27,7 +42,8 @@ type registryFile struct {
 }
 
 type llmFile struct {
-	LLMs []LLMDefinition `yaml:"llms"`
+	ModelCosts map[string]LLMCostDefinition `yaml:"model-costs"`
+	LLMs       []LLMDefinition              `yaml:"llms"`
 }
 
 type Registry struct {
@@ -59,6 +75,9 @@ func LoadRegistry(root string) (*Registry, error) {
 	for _, l := range lf.LLMs {
 		if l.Name == "" {
 			return nil, fmt.Errorf("llm with empty name in %s", llmPath)
+		}
+		if l.Costs != nil && !l.Costs.IsComplete() {
+			return nil, fmt.Errorf("llm %q has incomplete costs in %s", l.Name, llmPath)
 		}
 		reg.LLMs[l.Name] = l
 	}

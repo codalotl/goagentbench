@@ -4,6 +4,15 @@ set -euo pipefail
 IMAGE_NAME="goagentbench"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST_CODEX_AUTH="${HOME}/.codex/auth.json"
+LINK_OPENAI_AUTH=1
+
+for arg in "$@"; do
+  case "${arg}" in
+    nolinkopenai)
+      LINK_OPENAI_AUTH=0
+      ;;
+  esac
+done
 
 # Build the image (cached) unless explicitly skipped.
 if [[ -z "${GOAGENTBENCH_SKIP_BUILD:-}" ]]; then
@@ -11,7 +20,7 @@ if [[ -z "${GOAGENTBENCH_SKIP_BUILD:-}" ]]; then
 fi
 
 # Pass selected environment variables through to the container. Extend VARS_TO_PASS to add more.
-VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY XAI_API_KEY)
+VARS_TO_PASS=(CURSOR_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY XAI_API_KEY GEMINI_API_KEY)
 ENV_ARGS=()
 for var in "${VARS_TO_PASS[@]}"; do
   if [[ -n "${!var:-}" ]]; then
@@ -22,7 +31,7 @@ ENV_ARGS+=("-e" "GOAGENTBENCH_RESULTS=/host/results")
 
 # Build mount args conditionally to avoid polluting test runs with user settings.
 MOUNT_ARGS=("-v" "${SCRIPT_DIR}:/host")
-if [[ -n "${GOAGENTBENCH_CODEX_MOUNT_AUTH:-}" && -f "${HOST_CODEX_AUTH}" ]]; then
+if [[ "${LINK_OPENAI_AUTH}" -eq 1 && -n "${GOAGENTBENCH_CODEX_MOUNT_AUTH:-}" && -f "${HOST_CODEX_AUTH}" ]]; then
   MOUNT_ARGS+=("-v" "${HOST_CODEX_AUTH}:/home/runner/.codex/auth.json:rw")
 fi
 

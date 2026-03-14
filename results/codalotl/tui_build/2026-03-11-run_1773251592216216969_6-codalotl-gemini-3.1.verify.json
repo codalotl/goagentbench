@@ -1,0 +1,36 @@
+{
+  "run_id": "run_1773251592216216969_6",
+  "scenario": "codalotl/tui_build",
+  "agent": "codalotl",
+  "agent_version": "0.14.0",
+  "model": "gemini-3.1",
+  "started_at": "2026-03-11T17:53:12.216218469Z",
+  "progress": {
+    "run_id": "run_1773251592216216969_6",
+    "scenario": "codalotl/tui_build",
+    "agent": "codalotl",
+    "agent_version": "0.14.0",
+    "model": "gemini-3.1",
+    "started_at": "2026-03-11T17:53:12.216218469Z",
+    "updated_at": "2026-03-11T17:59:48.271094305Z",
+    "ended_at": "2026-03-11T17:59:48.27108943Z",
+    "duration_seconds": 396.046276054,
+    "token_usage": {
+      "input": 47782,
+      "cached_input": 1269340,
+      "write_cached_input": 0,
+      "output": 36995,
+      "total": 1354117,
+      "cost": 0.793372
+    }
+  },
+  "verified_at": "2026-03-11T17:59:48.690308875Z",
+  "success": true,
+  "tests": [
+    {
+      "name": "./internal/q/tui",
+      "passed": true,
+      "output": "ok  \tgithub.com/codalotl/codalotl/internal/q/tui\t(cached)\n"
+    }
+  ]
+}

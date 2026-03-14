@@ -580,21 +580,31 @@ func reportWithoutTranscripts(report *types.VerificationReport) *types.Verificat
 
 func writeReport(opts Options, report *types.VerificationReport) error {
 	cleanReport := reportWithoutTranscripts(report)
-	filename := fmt.Sprintf("%s-%s-%s-%s.verify.json",
-		cleanReport.VerifiedAt.Format("2006-01-02"),
-		safePart(cleanReport.RunID, "run"),
-		safePart(cleanReport.Agent, "agent"),
-		safePart(cleanReport.Model, "model"))
-	outDir := filepath.Join(resultsDir(opts.RootPath), opts.ScenarioName)
-	if err := os.MkdirAll(outDir, 0o755); err != nil {
+	outPath := ReportPath(opts, cleanReport)
+	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 		return err
 	}
-	outPath := filepath.Join(outDir, filename)
 	data, err := json.MarshalIndent(cleanReport, "", "  ")
 	if err != nil {
 		return err
 	}
 	return os.WriteFile(outPath, data, 0o644)
+}
+
+// ReportPath returns the path where writeReport stores a verification report.
+func ReportPath(opts Options, report *types.VerificationReport) string {
+	if report == nil {
+		return ""
+	}
+	return filepath.Join(resultsDir(opts.RootPath), opts.ScenarioName, reportFilename(report))
+}
+
+func reportFilename(report *types.VerificationReport) string {
+	return fmt.Sprintf("%s-%s-%s-%s.verify.json",
+		report.VerifiedAt.Format("2006-01-02"),
+		safePart(report.RunID, "run"),
+		safePart(report.Agent, "agent"),
+		safePart(report.Model, "model"))
 }
 
 func safePart(value, fallback string) string {
