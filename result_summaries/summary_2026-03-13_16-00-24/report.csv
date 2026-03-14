@@ -1,0 +1,5 @@
+agent,model,agent_version,unique_scenarios,count,success,partial_success_score,success_rate,partial_success_rate,avg_cost,avg_time
+codalotl,gpt-5.4-high,"0.13.0,0.14.0",8,24,19,19,0.79,0.79,0.4,271.1
+codex,gpt-5.4-high,0.111.0,8,24,19,19,0.79,0.79,0.66,772.25
+codalotl,claude-opus-4-6,"0.12.0,0.12.2,0.15.1",8,18,14,14,0.78,0.78,1.71,465.96
+codalotl,gemini-3.1,0.14.0,8,24,17,17,0.71,0.71,0.35,200.94

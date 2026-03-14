@@ -12,15 +12,12 @@ Benchmark AI coding agents and LLMs on Go-only coding tasks.
 <!-- BEGIN_RESULTS -->
 | Agent | Model | Success | Avg Cost | Avg Time |
 | --- | --- | --- | --- | --- |
-| codalotl | gpt-5.2-high | 83% | $0.38 | 7m 7s |
-| codex | gpt-5.2-high | 75% | $0.65 | 15m 33s |
-| cursor-agent | composer-1 | 57% | $0.27 | 1m 6s |
-| claude | claude-opus-4.5-thinking | 50% | $1.62 | 4m 18s |
-| crush | grok-code-fast-1 | 43% | $0.94 | 4m 57s |
-| claude | claude-sonnet-4.5-thinking | 33% | $0.73 | 3m 29s |
-| crush | grok-4-1-fast-reasoning | 0% | $0.07 | 2m 9s |
+| codalotl | gpt-5.4-high | 79% | $0.40 | 4m 31s |
+| codex | gpt-5.4-high | 79% | $0.66 | 12m 52s |
+| codalotl | claude-opus-4-6 | 78% | $1.71 | 7m 46s |
+| codalotl | gemini-3.1 | 71% | $0.35 | 3m 21s |
 
-Results as of 2026-01-17. See [result_summaries/summary_2026-01-17_11-48-24](result_summaries/summary_2026-01-17_11-48-24).
+Results as of 2026-03-13. See [result_summaries/summary_2026-03-13_16-00-24](result_summaries/summary_2026-03-13_16-00-24).
 <!-- END_RESULTS -->
 
 NOTES:

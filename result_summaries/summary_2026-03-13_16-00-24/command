@@ -1,0 +1,1 @@
+goagentbench report --limit=3 --after=2026-03-06 --publish
